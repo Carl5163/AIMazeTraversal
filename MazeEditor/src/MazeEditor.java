@@ -35,25 +35,17 @@ public class MazeEditor extends JFrame implements ActionListener{
 		
 		cp = getContentPane();		
 		
-		setJMenuBar(makeMenuBar());
 		
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
-		map = new int[mapWidth][mapHeight];
-		initMap();
 		drawPane = new DrawPane(map, mapWidth, mapHeight);
 		
 		cp.add(drawPane, BorderLayout.CENTER);
+		setJMenuBar(makeMenuBar());
 		
 	}
 	
-	private void initMap() {
-		for(int i = 0; i < mapWidth; i++) {
-			for(int j = 0; j < mapHeight; j++) {
-				map[i][j] = 1;
-			}
-		}
-	}
+	
 
 	private JMenuBar makeMenuBar() {
 
@@ -96,13 +88,13 @@ public class MazeEditor extends JFrame implements ActionListener{
 		menuItem = new JMenuItem("Clear");
 		menuItem.setActionCommand("CLEAR");
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK));
-		menuItem.addActionListener(this);
+		menuItem.addActionListener(drawPane);
 		menu.add(menuItem);
 		
 		menuItem = new JMenuItem("Randomize");
 		menuItem.setActionCommand("RANDOMIZE");
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK));
-		menuItem.addActionListener(this);
+		menuItem.addActionListener(drawPane);
 		menu.add(menuItem);
 		
 		menuBar.add(menu);
