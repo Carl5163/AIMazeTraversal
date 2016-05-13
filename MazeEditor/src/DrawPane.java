@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Random;
+import java.util.Stack;
 
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
@@ -41,6 +43,8 @@ public class DrawPane extends JPanel implements ActionListener, MouseListener, M
 	private JFileChooser fileChooser;
 	private File file;
 	boolean drawSelectedItem;
+	private Stack<Cell> randomStack;
+	private Cell[][] cellMap;
 
 	
 	
@@ -264,6 +268,38 @@ public class DrawPane extends JPanel implements ActionListener, MouseListener, M
 				map[i][j] = 0;
 			}
 		}
+	}
+	
+	private void randomize() {
+		
+		Random random;
+		int startX, startY, unvisitedCells;
+		Cell currentCell;
+		
+		unvisitedCells = mapWidth*mapHeight;
+		
+		cellMap = new Cell[mapWidth][mapHeight];
+		for(int i = 0; i < mapWidth; i++) {
+			for(int j = 0; j < mapHeight; j++) {
+				cellMap[i][j] = new Cell();
+			}
+		}
+		
+		random = new Random();
+		randomStack = new Stack<Cell>();
+		startX = random.nextInt(mapWidth);
+		startY = random.nextInt(mapHeight);
+		currentCell = cellMap[startX][startY];
+		currentCell.setVisited();
+		unvisitedCells--;
+		
+		while(unvisitedCells > 0) {
+			if()
+		}
+		
+		
+		
+		
 	}
 
 	@Override
