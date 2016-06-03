@@ -17,6 +17,7 @@ import java.util.Stack;
 
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -33,6 +34,8 @@ public class DrawPane extends JPanel implements ActionListener, MouseListener, M
 	private static final Color[] COLORS = {Color.WHITE, Color.GRAY, Color.GREEN, Color.BLUE, new Color(0,0,0,0)};
 	
 	private int[][] map;
+	private Stack<int[][]> undoStack;
+	private Stack<int[][]> redoStack;
 	private int mapWidth;
 	private int mapHeight;
 	private int selectedSquareX;
@@ -42,13 +45,14 @@ public class DrawPane extends JPanel implements ActionListener, MouseListener, M
 	private int selectedItem;
 	private JFileChooser fileChooser;
 	private File file;
-	boolean drawSelectedItem;
-	private Stack<Cell> randomStack;
+	private boolean drawSelectedItem;
 	private Cell[][] cellMap;
+	private JMenuItem undoItem;
+	private JMenuItem redoItem;
 
 	
 	
-	public DrawPane(int[][] map, int width, int height) {
+	public DrawPane(int[][] map, JMenuItem undoItem, JMenuItem redoItem, int width, int height) {
 		super();
 		this.map = map;
 		addMouseListener(this);
@@ -63,6 +67,11 @@ public class DrawPane extends JPanel implements ActionListener, MouseListener, M
 		selectedItem = WALL;
 		fileChooser = new JFileChooser(".");
 		drawSelectedItem = false;
+		undoStack = new Stack<int[][]>();
+		undoStack.push(map.clone());
+		redoStack = new Stack<int[][]>();
+		this.undoItem = undoItem;
+		this.redoItem = redoItem;
 	}
 	
 	@Override
@@ -101,7 +110,20 @@ public class DrawPane extends JPanel implements ActionListener, MouseListener, M
 	public void actionPerformed(ActionEvent e) {
 		String cmd;
 		cmd = e.getActionCommand();
-		if(cmd.equals("CLEAR")) {
+		if(cmd.equals("UNDO")) {
+			System.out.println("FFS");
+			if(!undoStack.isEmpty()) {
+				System.out.println("YO");
+				map = undoStack.pop();
+				redoStack.push(map);
+				redoItem.setEnabled(true);
+				repaint();
+			} else {
+				undoItem.setEnabled(false);				
+			}
+		} else if(cmd.equals("REDO")) {
+			
+		} else if(cmd.equals("CLEAR")) {
 			if(JOptionPane.showConfirmDialog(this, "Are you sure you want to erase the map?", "Clear Map", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
 				initMap();
 			}
@@ -135,6 +157,8 @@ public class DrawPane extends JPanel implements ActionListener, MouseListener, M
 					openMap(potentialNewFile);
 				}
 			}
+		} else if(cmd.equals("RANDOMIZE")) {
+			randomize();
 		}
 	}
 	
@@ -212,6 +236,10 @@ public class DrawPane extends JPanel implements ActionListener, MouseListener, M
 
 	@Override
 	public void mousePressed(MouseEvent e) {
+
+		undoStack.push(map.clone());
+		undoItem.setEnabled(true);
+		
 		selectedSquareX = e.getX()/32;
 		selectedSquareY = e.getY()/32;
 		if(selectedSquareX >= 0 && selectedSquareX < mapWidth && selectedSquareY >= 0 && selectedSquareY < mapHeight) {
@@ -272,38 +300,83 @@ public class DrawPane extends JPanel implements ActionListener, MouseListener, M
 	
 	private void randomize() {
 		
+		NoDupeList<Cell> cellList, neighbors;
+		int startX, startY, numVisitedNeighbors;
 		Random random;
-		int startX, startY, unvisitedCells;
 		Cell currentCell;
 		
-		unvisitedCells = mapWidth*mapHeight;
-		
 		cellMap = new Cell[mapWidth][mapHeight];
+		
 		for(int i = 0; i < mapWidth; i++) {
 			for(int j = 0; j < mapHeight; j++) {
-				cellMap[i][j] = new Cell();
+				cellMap[i][j] = new Cell(i,j);
 			}
 		}
-		
 		random = new Random();
-		randomStack = new Stack<Cell>();
-		startX = random.nextInt(mapWidth);
-		startY = random.nextInt(mapHeight);
-		currentCell = cellMap[startX][startY];
-		currentCell.setVisited();
-		unvisitedCells--;
+		startX = 1+random.nextInt(mapWidth-2);
+		startY = 1+random.nextInt(mapHeight-2);
+		cellList = new NoDupeList<Cell>();
 		
-		while(unvisitedCells > 0) {
-			if()
+		currentCell = cellMap[startX][startY];
+		currentCell.setVisited();			
+		
+		cellList.addAll(getNeighbors(currentCell));
+		while(!cellList.isEmpty()) {
+			currentCell = cellList.get(random.nextInt(cellList.size()));
+			neighbors = getNeighbors(currentCell);
+			numVisitedNeighbors = 0;
+			for(Cell cell : neighbors) {
+				if(cell.isVisited()) {
+					numVisitedNeighbors++;
+				}
+			}
+			if(numVisitedNeighbors < 2) {
+				currentCell.setVisited();
+				cellList.addAll(neighbors);
+			}
+			cellList.remove(currentCell);
+			
 		}
 		
 		
-		
+		map = Cell.convertCellMapToIntMap(cellMap, mapWidth, mapHeight);
+		repaint();
+			
 		
 	}
-
+	
+	private NoDupeList<Cell> getNeighbors(Cell curCell) {
+		NoDupeList<Cell> neighbors;
+		int x, y;
+		neighbors = new NoDupeList<Cell>();
+		
+		x = curCell.getX();
+		y = curCell.getY();
+		
+		
+		if(x-1 > 0) {
+			neighbors.add(cellMap[x-1][y]);
+		}
+		if(y-1 > 0) {
+			neighbors.add(cellMap[x][y-1]);
+		}
+		if(x+1 < mapWidth-1) {
+			neighbors.add(cellMap[x+1][y]);
+		}
+		if(y+1 < mapHeight-1) {
+			neighbors.add(cellMap[x][y+1]);
+		}
+		
+				
+		return neighbors;
+	}
+	
 	@Override
-	public void mouseReleased(MouseEvent e) {}
+	public void mouseReleased(MouseEvent e) {
+		//System.out.println("HEYA");
+		//undoStack.push(map.clone());
+		//undoItem.setEnabled(true);
+	}
 	@Override
 	public void mouseClicked(MouseEvent e) {}
 	

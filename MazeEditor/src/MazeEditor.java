@@ -21,6 +21,8 @@ public class MazeEditor extends JFrame implements ActionListener{
 	private int[][] map;
 	private int mapWidth;
 	private int mapHeight;
+	private JMenuItem undoItem;
+	private JMenuItem redoItem;
 	
 	public static void main(String[] args) {
 		new MazeEditor(25, 25).show(null);
@@ -40,7 +42,22 @@ public class MazeEditor extends JFrame implements ActionListener{
 		
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
-		drawPane = new DrawPane(map, mapWidth, mapHeight);
+
+		
+		undoItem = new JMenuItem("Undo");
+		undoItem.setActionCommand("UNDO");
+		undoItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK));
+		undoItem.setEnabled(false);
+		
+		redoItem = new JMenuItem("Redo");
+		redoItem.setActionCommand("REDO");
+		redoItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK));
+		redoItem.setEnabled(false);
+		
+		undoItem.addActionListener(drawPane);
+		redoItem.addActionListener(drawPane);
+		
+		drawPane = new DrawPane(map, undoItem, redoItem, mapWidth, mapHeight);
 		
 		cp.add(drawPane, BorderLayout.CENTER);
 		cp.add(makeToolPanel(), BorderLayout.EAST);
@@ -111,6 +128,9 @@ public class MazeEditor extends JFrame implements ActionListener{
 		
 		menu = new JMenu("Edit");
 		menu.setMnemonic(KeyEvent.VK_E);
+		
+		menu.add(undoItem);		
+		menu.add(redoItem);		
 		
 		menuItem = new JMenuItem("Clear");
 		menuItem.setActionCommand("CLEAR");
