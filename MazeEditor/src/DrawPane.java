@@ -65,7 +65,7 @@ public class DrawPane extends JPanel implements ActionListener, MouseListener, M
 		selectedSquareX = -100;
 		selectedSquareY = -100;
 		selectedItem = WALL;
-		fileChooser = new JFileChooser(".");
+		fileChooser = new JFileChooser("Maps");
 		drawSelectedItem = false;
 		undoStack = new Stack<int[][]>();
 		undoStack.push(map.clone());
