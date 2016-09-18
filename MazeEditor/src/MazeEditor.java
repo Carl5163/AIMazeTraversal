@@ -42,8 +42,6 @@ public class MazeEditor extends JFrame implements ActionListener{
 		
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
-
-		
 		undoItem = new JMenuItem("Undo");
 		undoItem.setActionCommand("UNDO");
 		undoItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK));
@@ -140,7 +138,7 @@ public class MazeEditor extends JFrame implements ActionListener{
 		
 		menuItem = new JMenuItem("Randomize");
 		menuItem.setActionCommand("RANDOMIZE");
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK));
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK + InputEvent.SHIFT_DOWN_MASK));
 		menuItem.addActionListener(drawPane);
 		menu.add(menuItem);
 		

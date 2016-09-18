@@ -68,10 +68,11 @@ public class DrawPane extends JPanel implements ActionListener, MouseListener, M
 		fileChooser = new JFileChooser("Maps");
 		drawSelectedItem = false;
 		undoStack = new Stack<int[][]>();
-		undoStack.push(map.clone());
 		redoStack = new Stack<int[][]>();
 		this.undoItem = undoItem;
+		this.undoItem.addActionListener(this);
 		this.redoItem = redoItem;
+		this.redoItem.addActionListener(this);
 	}
 	
 	@Override
@@ -111,18 +112,21 @@ public class DrawPane extends JPanel implements ActionListener, MouseListener, M
 		String cmd;
 		cmd = e.getActionCommand();
 		if(cmd.equals("UNDO")) {
-			System.out.println("FFS");
-			if(!undoStack.isEmpty()) {
-				System.out.println("YO");
-				map = undoStack.pop();
-				redoStack.push(map);
-				redoItem.setEnabled(true);
-				repaint();
-			} else {
-				undoItem.setEnabled(false);				
+			redoStack.push(copyOf2D(map, mapWidth, mapHeight));
+			map = undoStack.pop();
+			redoItem.setEnabled(true);
+			repaint();
+			if(undoStack.isEmpty()) {
+				undoItem.setEnabled(false);	
 			}
 		} else if(cmd.equals("REDO")) {
-			
+			undoStack.push(copyOf2D(map, mapWidth, mapHeight));
+			map = redoStack.pop();
+			undoItem.setEnabled(true);
+			repaint();
+			if(redoStack.isEmpty()) {
+				redoItem.setEnabled(false);	
+			}
 		} else if(cmd.equals("CLEAR")) {
 			if(JOptionPane.showConfirmDialog(this, "Are you sure you want to erase the map?", "Clear Map", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
 				initMap();
@@ -158,10 +162,29 @@ public class DrawPane extends JPanel implements ActionListener, MouseListener, M
 				}
 			}
 		} else if(cmd.equals("RANDOMIZE")) {
+
+			undoStack.push(copyOf2D(map, mapWidth, mapHeight));
+			undoItem.setEnabled(true);
+			
+			redoStack.clear();
+			redoItem.setEnabled(false);
+			
 			randomize();
 		}
 	}
 	
+	private static int[][] copyOf2D(int[][] cpyFrom, int w, int h) {
+
+		int[][] cpy = new int[w][h];
+		for(int i = 0; i < w; i++) {
+			for(int j = 0; j < h; j++) {
+				cpy[i][j] = cpyFrom[i][j];
+			}
+		}
+		
+		return cpy;
+	}
+
 	private File getSaveFilename() {
 		File file;
 		int result;
@@ -237,8 +260,11 @@ public class DrawPane extends JPanel implements ActionListener, MouseListener, M
 	@Override
 	public void mousePressed(MouseEvent e) {
 
-		undoStack.push(map.clone());
+		undoStack.push(copyOf2D(map, mapWidth, mapHeight));
 		undoItem.setEnabled(true);
+		
+		redoStack.clear();
+		redoItem.setEnabled(false);
 		
 		selectedSquareX = e.getX()/32;
 		selectedSquareY = e.getY()/32;
@@ -371,11 +397,19 @@ public class DrawPane extends JPanel implements ActionListener, MouseListener, M
 		return neighbors;
 	}
 	
+	private static void printMap(int[][] mapToPrint, int w, int h) {
+
+		for(int j = 0; j < h; j++) {
+			for(int i = 0; i < w; i++) {
+				System.out.print(mapToPrint[i][j] + " ");
+			}	
+			System.out.println();
+		}
+		
+	}
+	
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		//System.out.println("HEYA");
-		//undoStack.push(map.clone());
-		//undoItem.setEnabled(true);
 	}
 	@Override
 	public void mouseClicked(MouseEvent e) {}
