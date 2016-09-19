@@ -18,9 +18,6 @@ public class Neuron {
 		}
 	}
 	
-	public void update() {
-	}
-	
 	public int getNumInputs() {
 		return numInputs;
 	}
