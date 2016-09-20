@@ -18,10 +18,10 @@ public class DrawPanel extends JPanel implements ActionListener {
 	private static final long MAGIC_NUMBER_XOR = 4819776984503323676L;
 	private static final long MAGIC_NUMBER     = 5033236748698419776L;
 	private static final Color[] COLORS = {new Color(0,125,0,0), Color.GRAY, Color.GREEN, Color.BLUE, new Color(0,0,0,0)};
-	private static final int NONE = 0;
-	private static final int WALL = 1;
-	private static final int ENTRANCE = 2;
-	private static final int EXIT = 3;
+	public static final int NONE = 0;
+	public static final int WALL = 1;
+	public static final int ENTRANCE = 2;
+	public static final int EXIT = 3;
 	
 	private int gridSize = 32;
 	private File file;
