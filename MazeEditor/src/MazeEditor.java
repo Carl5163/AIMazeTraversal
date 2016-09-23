@@ -37,6 +37,7 @@ public class MazeEditor extends JFrame implements ActionListener{
 		
 		setSize(1000, 1000);
 		setResizable(false);
+		setTitle("AI Maze Traversal Maze Editor");
 		
 		cp = getContentPane();				
 		
@@ -153,7 +154,9 @@ public class MazeEditor extends JFrame implements ActionListener{
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		this.dispose();
+		if(e.getActionCommand().equals("EXIT")) {
+			System.exit(0);
+		}
 	}
 	
 }

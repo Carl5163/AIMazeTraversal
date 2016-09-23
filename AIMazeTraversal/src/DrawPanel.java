@@ -31,8 +31,7 @@ public class DrawPanel extends JPanel implements ActionListener {
 	private int mapHeight;
 	private JFileChooser fileChooser;
 	
-	public DrawPanel(Point pos) throws IOException {
-		dude = new Dude(pos, Dude.UP);
+	public DrawPanel() throws IOException {
 		fileChooser = new JFileChooser("..\\MazeEditor\\Maps");
 	}
 	
@@ -56,7 +55,18 @@ public class DrawPanel extends JPanel implements ActionListener {
 			}
 		}
 		
+		if(dude!= null) {
+			g.setColor(Color.BLACK);			
+			g.drawString("Location: (" + dude.getX() + ", " + dude.getY() + ")", 825, 20);
+			g.drawString("Distance to Goal: " + dude.findDistanceToGoal(), 825, 35);
+			g.drawString("Fitness: " + dude.findFitness(), 825, 50);
+		}
+		
 		g.setColor(oldColor);
+		
+		if(dude != null) {
+			dude.draw(g);
+		}
 		
 		
 	}
@@ -64,6 +74,7 @@ public class DrawPanel extends JPanel implements ActionListener {
 	private void openMap(File f) {
 		long encryptedMagicNumber;
 		long magicNumber;
+		int dx = 0,dy = 0;
 		try {
 			DataInputStream dis = new DataInputStream(new FileInputStream(f));
 			encryptedMagicNumber = dis.readLong();
@@ -72,11 +83,18 @@ public class DrawPanel extends JPanel implements ActionListener {
 				for(int i = 0; i < mapWidth; i++) {
 					for(int j = 0; j < mapHeight; j++) {
 						map[i][j] = dis.readByte();
+						if(map[i][j] == ENTRANCE) {
+							dx = i;
+							dy = j;								
+						}
 					}
 				}
 				file = f;
 				repaint();
 				dis.close();
+				
+				dude = new Dude(dx, dy, map, mapWidth, mapHeight);
+				
 			
 			} else {
 				JOptionPane.showMessageDialog(this, "The file you chose is not a valid map file.", "Open File", JOptionPane.ERROR_MESSAGE);
@@ -95,7 +113,9 @@ public class DrawPanel extends JPanel implements ActionListener {
 	}
 	
 	public void update(int dir) {
-		dude.move(dir);
+		if(dude != null) {
+			dude.move(map, dir);
+		}
 		repaint();
 	}
 
@@ -116,6 +136,8 @@ public class DrawPanel extends JPanel implements ActionListener {
 					repaint();
 				}
 			}
+		} else if(command.equals("CALCFIT")) {
+			System.out.println("Fitness: " + dude.findFitness());
 		}
 	}
 	

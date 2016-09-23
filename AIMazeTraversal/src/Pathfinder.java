@@ -8,23 +8,22 @@ public class Pathfinder {
 	public static final int COST = 10;
 	
 	private Cell[][] map;
-	private int startX, startY, endX, endY;
+	private int endX, endY;
 	private PriorityQueue<Cell> open;
 	private boolean[][] closed;
 	private int mapWidth, mapHeight;
 	
 	public Pathfinder(int[][] intMap, int w, int h) {
 
-		Cell[][] map;
 		map = new Cell[w][h];
-		init(map, intMap, w, h);
+		System.out.printf("Map array created with dimensions: %dx%d.\n", w, h);
 		mapWidth = w;
 		mapHeight = h;
+		init(intMap);
+		
 	}
 	
-	public void start(int sX, int sY) {
-		startX = sX;
-		startY = sY;
+	private void start(int startX, int startY) {
 		
 		open.add(map[startX][startY]);
 		Cell current;
@@ -32,6 +31,9 @@ public class Pathfinder {
 		
 		while(current != null) {
 
+			
+			closed[current.x][current.y] = true;
+			
 			if(current.x == endX && current.y == endY) {
 				// Done				
 				return;				
@@ -65,6 +67,31 @@ public class Pathfinder {
 		
 		
 	}
+	
+	public int getPathLength(int startX, int startY) {
+		
+		int ret = -1;
+		resetMap();
+		
+		closed = new boolean[mapWidth][mapHeight];
+		open = new PriorityQueue<Cell>();
+		
+		map[startX][startY].fCost = 0;
+				
+		start(startX, startY);
+		
+		if(closed[endX][endY]){
+			ret++;
+			Cell current = map[endX][endY];
+			while(current.parent!=null){
+				current = current.parent;
+				ret++;
+            } 
+        }else System.out.println("No possible path");
+		
+		
+		return ret;
+	}
 
 	private void updateCell(Cell c, Cell n, int cost){
 		
@@ -82,20 +109,49 @@ public class Pathfinder {
         }
     }
 	
-	private void init(Cell[][] map, int[][] intMap, int w, int h) {
+	private void init(int[][] intMap) {
 
-		for(int i = 0; i < w; i++) {
-			for(int j = 0; j < h; j++) {
+		for(int i = 0; i < mapWidth; i++) {
+			for(int j = 0; j < mapHeight; j++) {
 				if(intMap[i][j] == DrawPanel.NONE) {
 					map[i][j] = new Cell(i,j);
-				}  else if(intMap[i][j] == DrawPanel.EXIT) {
+					map[i][j].x = i;
+					map[i][j].y = j;
+				} else if(intMap[i][j] == DrawPanel.ENTRANCE) {
+					map[i][j] = new Cell(i,j);	
+					map[i][j].x = i;
+					map[i][j].y = j;	
+					System.out.printf("Created a cell at the entrance: (%d,%d).\n", i,j);			
+				} else if(intMap[i][j] == DrawPanel.EXIT) {
+					map[i][j] = new Cell(i,j);
+					map[i][j].x = i;
+					map[i][j].y = j;	
 					endX = i;
 					endY = j;
 				}
 			}
 		}
-		open = new PriorityQueue<Cell>();
+		
+		for(int i = 0; i < mapWidth; i++) {
+			for(int j = 0; j < mapHeight; j++) {
+				if(map[i][j] != null) {
+					map[i][j].hCost = Math.abs(i-endX)+Math.abs(j-endY);
+				}
+			}
+		}
+		System.out.println("A* initialized.");
 	}
+	
+	private void resetMap() {
+		for(int i = 0; i < mapWidth; i++) {
+			for(int j = 0; j < mapHeight; j++) {
+				if(map[i][j] != null) {
+					map[i][j].parent = null;
+				}
+			}
+		}
+	}
+	
 	
 
 }

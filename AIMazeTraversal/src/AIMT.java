@@ -23,14 +23,15 @@ public class AIMT extends JFrame implements KeyListener, ActionListener {
 	
 	public AIMT() {
 		try {
-			drawPanel = new DrawPanel(new Point(10,10));
+			drawPanel = new DrawPanel();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		setSize(1000, 1000);
+		setTitle("AI Maze Traversal");
 		setResizable(false);
 		setLocationRelativeTo(null);
-		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		getContentPane().add(drawPanel, BorderLayout.CENTER);
 		setJMenuBar(makeMenuBar());
 		addKeyListener(this);
@@ -61,8 +62,21 @@ public class AIMT extends JFrame implements KeyListener, ActionListener {
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0));
 		menuItem.addActionListener(this);
 		menu.add(menuItem);
-				
+
 		menuBar.add(menu);
+		
+		menu = new JMenu("Edit");	
+		menu.setMnemonic(KeyEvent.VK_E);
+			
+		menuItem = new JMenuItem("Calculate Fittness");
+		menuItem.setActionCommand("CALCFIT");
+		menuItem.setMnemonic(KeyEvent.VK_C);
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK));
+		menuItem.addActionListener(drawPanel);
+		menu.add(menuItem);
+
+		menuBar.add(menu);
+				
 		return menuBar;
 	}
 
@@ -87,7 +101,8 @@ public class AIMT extends JFrame implements KeyListener, ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
-		
+		if(e.getActionCommand().equals("EXIT")) {
+			System.exit(0);
+		}
 	}
 }

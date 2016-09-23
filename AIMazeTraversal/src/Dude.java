@@ -14,13 +14,21 @@ public class Dude {
 	public static final int RIGHT = 1;
 	public static final int DOWN = 2;
 	public static final int LEFT = 3;	
+	//Fitness = startDist-curDist
 	
 	private Image sprite[];
-	private Point pos;
+	private int x, y;
 	private int direction;
+	private Pathfinder p;
+	private int endX, endY;
+	private int[][] map;
+	private int startDist;
+	private int fitness;
 	
-	public Dude(Point pos, int startDir) throws IOException {
-		this.pos = pos;
+	public Dude(int x, int y, int[][] map, int w, int h) throws IOException {
+		this.x = x;
+		this.y = y;
+		this.map = map;
 		Image strip;
 		strip = ImageIO.read(new File("res\\bee_strip4.png"));
 		sprite = new Image[4];
@@ -31,31 +39,55 @@ public class Dude {
 			g.drawImage(strip, -i*32, 0, null);
 		}
 		
+
+		p = new Pathfinder(map, w, h);
+		startDist = findDistanceToGoal();
+		
 	}
 	
+	public int findFitness() {
+		fitness = startDist-p.getPathLength(x, y);
+		return fitness;
+	}
+	
+	public int findDistanceToGoal() {
+		return p.getPathLength(x, y);
+	}
+	
+	//146
 	public void draw(Graphics g2) {
 		Graphics2D g = (Graphics2D)g2;
-		System.out.println("Drawing at: " + pos.x*32 + "," + pos.y*32);
-		g.drawImage(sprite[direction], pos.x*32, pos.y*32, null);
+		g.drawImage(sprite[direction], x*32, y*32, null);
 				
 	}
 
-	public void move(int dir) {
+	public void move(int[][] map, int dir) {
 		direction = dir;	
 		switch(dir) {
 		case UP:
-			pos.y--;
+			if(map[x][y-1] != DrawPanel.WALL)
+				y--;
 			break;
 		case RIGHT:
-			pos.x++;
+			if(map[x+1][y] != DrawPanel.WALL)
+				x++;
 			break;
 		case LEFT:
-			pos.x--;
+			if(map[x-1][y] != DrawPanel.WALL)
+				x--;
 			break;
 		case DOWN:
-			pos.y++;
+			if(map[x][y+1] != DrawPanel.WALL)
+				y++;
 			break;
 		}
-		System.out.println("Moved to: " + pos.x + "," + pos.y);
+	}
+
+	
+	public int getX() {
+		return x;
+	}
+	public int getY() {
+		return y;
 	}
 }
