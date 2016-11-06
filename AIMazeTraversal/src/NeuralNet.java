@@ -40,26 +40,121 @@ public class NeuralNet {
 	
 	public void createNet() {
 		
-	}
-	
-	public double[] getWeights() {
-		return null;
-	}
-	
-	public int getNumberOfWeights() {
-		return -1;
-	}
-	
-	public void putWeights(double[] newWeights) {
+		layers.add(new Layer(neuronsPerHiddenLayer, numInputs));
+		for(int i = 0; i < numHiddenLayers-1; i++) {
+			layers.add(new Layer(neuronsPerHiddenLayer, neuronsPerHiddenLayer));
+		}
+		layers.add(new Layer(numOutputs, numInputs));
 		
 	}
 	
-	public int update(ArrayList<Double> inputs) {
-		return -1;		
+	public ArrayList<Double> getWeights() {
+		
+		ArrayList<Double> ret;
+		Layer curLayer;
+		Neuron curNeuron;
+		
+		ret = new ArrayList<Double>();
+				
+		for(int i = 0; i < numHiddenLayers+1; i++) {
+			curLayer = layers.get(i);
+			for(int j = 0; j < curLayer.getNumNeurons(); j++) {
+				curNeuron = curLayer.getNeuron(j);
+				for(int k = 0; k < curNeuron.getNumInputs(); k++) {
+					ret.add(curNeuron.getWeight(k));
+				}
+			}
+		}
+		
+		
+		return ret;
 	}
 	
-	public double sigmoid(double input, double activationResponse) {
-		return 4/(1+Math.pow(Math.E, input/activationResponse));
+	public int getNumberOfWeights() {
+		
+		int ret = 0;
+		Layer curLayer;
+		Neuron curNeuron;
+		
+		for(int i = 0; i < numHiddenLayers+1; i++) {
+			curLayer = layers.get(i);
+			for(int j = 0; j < curLayer.getNumNeurons(); j++) {
+				curNeuron = curLayer.getNeuron(j);
+				for(int k = 0; k < curNeuron.getNumInputs(); k++) {
+					ret++;
+				}
+			}
+		}
+		
+		
+		return ret;
+	}
+	
+	public void putWeights(ArrayList<Double> newWeights) {
+
+		Layer curLayer;
+		Neuron curNeuron;
+				
+		for(int i = 0; i < numHiddenLayers+1; i++) {
+			curLayer = layers.get(i);
+			for(int j = 0; j < curLayer.getNumNeurons(); j++) {
+				curNeuron = curLayer.getNeuron(j);
+				for(int k = 0; k < curNeuron.getNumInputs(); k++) {
+					curNeuron.setWeight(k, newWeights.get(k));
+				}
+			}
+		}
+	}
+	
+	public ArrayList<Double> update(ArrayList<Double> inputs) {
+		
+		ArrayList<Double> outputs;
+		int weightIndex;
+		Layer curLayer;
+		Neuron curNeuron;
+		
+		outputs = new ArrayList<Double>();
+		
+		for(int i = 0; i < numHiddenLayers; i++) {
+			
+			curLayer = layers.get(i);
+			// If we have just finished a layer, then the outputs of the previous layer become the inputs for the new layer.
+			if(i > 0) {
+				inputs.clear();
+				inputs.addAll(outputs);
+			}
+			
+			outputs.clear();
+			weightIndex = 0;
+			
+			for(int j = 0; j < curLayer.getNumNeurons(); j++) {
+				
+				curNeuron = curLayer.getNeuron(j);
+				double sigInput = 0;
+				int numIn = curNeuron.getNumInputs();
+								
+				for(int k = 0; k < numIn; k++) {
+					sigInput += curNeuron.getWeight(k) * inputs.get(weightIndex);
+					weightIndex++;
+				}
+				
+				sigInput += curNeuron.getWeight(numIn-1) * bias;
+				
+				outputs.add(sigmoid(sigInput, activationResponse));
+				
+				weightIndex = 0;
+				
+			}
+			
+		}
+		
+		
+		
+		return outputs;		
+	}
+	
+	public double sigmoid(double input, double ar) {
+		return (1 /(1 + Math.exp(-input/ar)));
 	}
 	
 

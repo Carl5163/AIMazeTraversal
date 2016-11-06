@@ -25,7 +25,7 @@ public class DrawPanel extends JPanel implements ActionListener {
 	
 	private int gridSize = 32;
 	private File file;
-	private Dude dude;
+	private Bee dude;
 	private int[][] map;
 	private int mapWidth;
 	private int mapHeight;
@@ -93,7 +93,7 @@ public class DrawPanel extends JPanel implements ActionListener {
 				repaint();
 				dis.close();
 				
-				dude = new Dude(dx, dy, map, mapWidth, mapHeight);
+				dude = new Bee(dx, dy, map, mapWidth, mapHeight);
 				
 			
 			} else {

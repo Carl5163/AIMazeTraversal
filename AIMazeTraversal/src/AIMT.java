@@ -83,13 +83,13 @@ public class AIMT extends JFrame implements KeyListener, ActionListener {
 	@Override
 	public void keyPressed(KeyEvent e) {
 		if(e.getKeyCode() == KeyEvent.VK_LEFT) {
-			drawPanel.update(Dude.LEFT);
+			drawPanel.update(Bee.LEFT);
 		} else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
-			drawPanel.update(Dude.RIGHT);
+			drawPanel.update(Bee.RIGHT);
 		} else if(e.getKeyCode() == KeyEvent.VK_UP) {
-			drawPanel.update(Dude.UP);
+			drawPanel.update(Bee.UP);
 		} else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
-			drawPanel.update(Dude.DOWN);
+			drawPanel.update(Bee.DOWN);
 		}
 	}
 

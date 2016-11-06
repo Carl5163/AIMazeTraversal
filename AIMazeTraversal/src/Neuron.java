@@ -25,4 +25,8 @@ public class Neuron {
 	public double getWeight(int i) {
 		return weights.get(i);
 	}
+
+	public void setWeight(int k, double weight) {
+		weights.set(k, weight);
+	}
 }

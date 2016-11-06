@@ -8,7 +8,7 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-public class Dude {
+public class Bee {
 	
 	public static final int UP = 0;
 	public static final int RIGHT = 1;
@@ -25,7 +25,7 @@ public class Dude {
 	private int startDist;
 	private int fitness;
 	
-	public Dude(int x, int y, int[][] map, int w, int h) throws IOException {
+	public Bee(int x, int y, int[][] map, int w, int h) throws IOException {
 		this.x = x;
 		this.y = y;
 		this.map = map;
