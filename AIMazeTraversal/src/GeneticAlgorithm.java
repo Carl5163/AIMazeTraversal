@@ -7,13 +7,13 @@ import java.util.Random;
 
 public class GeneticAlgorithm {
 
-	private int numBees = 50;
-	private int chromeLength;
+	private int popSize = 50;
+	int chromeLength;
 	private double totalFitness;
-	private double averageFitness;	
-	private double worstFitness;	
-	private double bestFitness;	
-	private int fittestGenome;
+	double averageFitness;	
+	double worstFitness;	
+	double bestFitness;	
+	int fittestGenome;
 	int generation;
 	private double crossoverRate = 0;
 	private double mutationRate = 0;
@@ -21,9 +21,9 @@ public class GeneticAlgorithm {
 	private int numElite = 0;
 	private int numCopiesElite = 0;
 	private Properties prefs;
-	private ArrayList<Genome> population;
+	ArrayList<Genome> population;
 	
-	public GeneticAlgorithm() {
+	public GeneticAlgorithm(int chromeLength) {
 		prefs = new Properties();
 		try {
 			prefs.load(new FileInputStream("config.ini"));
@@ -38,9 +38,13 @@ public class GeneticAlgorithm {
 			e.printStackTrace();
 		}
 		
-		Random random = new Random();
 		
-		for(int i = 0; i < numBees; i++) {
+		this.chromeLength = chromeLength;
+		
+		Random random = new Random();
+		population = new ArrayList<Genome>();
+		
+		for(int i = 0; i < popSize; i++) {
 			population.add(new Genome());
 			for(int j = 0; j < chromeLength; j++) {
 				population.get(i).addWeight(random.nextDouble() - 2 * random.nextDouble());
@@ -50,19 +54,144 @@ public class GeneticAlgorithm {
 	}
 	
 	public void crossover(ArrayList<Double> parent1, ArrayList<Double> parent2, ArrayList<Double> child1, ArrayList<Double> child2) {
-		
+		Random random = new Random();
+		if(random.nextFloat() > crossoverRate || parent1 == parent2) {
+			child1 = parent1;
+			child2 = parent2;
+			System.out.println((random.nextFloat() > crossoverRate) + ", " + (parent1 == parent2));
+		} else {
+			System.out.println((random.nextFloat() > crossoverRate) + ", " + (parent1 == parent2));
+			int crossoverPoint = random.nextInt(chromeLength-1);
+			for(int i = 0; i < crossoverPoint; i++)
+			{
+				child1.add(parent1.get(i));
+				child2.add(parent2.get(i));
+			}
+			for(int i = crossoverPoint; i < parent2.size(); i++)
+			{
+				child1.add(parent2.get(i));
+				child2.add(parent1.get(i));
+			}
+		}
 	}
 	
-	public void mutate(double mutate) {
-		
+	public void mutate(ArrayList<Double> chromo) {
+		Random random = new Random();
+		for(int i = 0; i < chromo.size(); i++) {
+			if(random.nextFloat() < mutationRate) {
+				chromo.set(i, (random.nextDouble() - 2 * random.nextDouble()) * maxPerturbation );
+			}
+		}
 	}
 	
-	public void getBest(int numBest, int numCopies, ArrayList<Genome> population) {
-		
+	public void getBest(int iBest, int numCopies, ArrayList<Genome> pop) {
+		while(iBest > 0) {
+			iBest--;
+			for(int i = 0; i < numCopies; i++) {
+				pop.add(population.get(iBest));
+			}
+		}
 	}
 	
 	public ArrayList<Genome> epoch(ArrayList<Genome> lastGen) {
-		return null;
+		
+		population = lastGen;
+		
+		totalFitness = 0;
+		bestFitness = 0;
+		worstFitness = Integer.MAX_VALUE;
+		averageFitness = 0;
+		
+		boolean swapped;
+		int n = population.size();
+		do { 
+			swapped = false;
+			for(int i = 1; i < n; i++) {
+				if(population.get(i-1).isLessThan(population.get(i))) {
+					Genome temp = population.get(i-1);
+					population.set(i-1, population.get(i));
+					population.set(i, temp);
+					swapped = true;
+				}
+			}
+			n--;
+		} while(swapped);
+
+		totalFitness = 0;		
+		double highest = 0;
+		double lowest  = Integer.MAX_VALUE;
+		
+		for (int i=0; i < popSize; ++i) {
+			if (population.get(i).fitness > highest) {
+				highest	 = population.get(i).fitness;				
+				fittestGenome = i;
+				bestFitness	= highest;
+			}
+			if (population.get(i).fitness < lowest) {
+				lowest = population.get(i).fitness;				
+				worstFitness = lowest;
+			}
+			
+			totalFitness += population.get(i).fitness;
+				
+		}
+		
+		averageFitness = totalFitness / popSize;
+		
+		ArrayList<Genome> newPop = new ArrayList<Genome>();
+		
+		if((numCopiesElite * numElite % 2) == 0) {
+			getBest(numElite, numCopiesElite, newPop);
+		}
+		
+		while (newPop.size() < popSize)
+		{
+			Genome mum = getRoulette();
+			Genome dad = getRoulette();
+
+			ArrayList<Double> child1 = new ArrayList<Double>();
+			ArrayList<Double> child2 = new ArrayList<Double>();
+
+			crossover(mum.weights, dad.weights, child1, child2);
+			//System.out.println("Child1:");
+			for(double d : child1) {
+				//System.out.println("W: " + d);
+			}
+			//System.out.println();
+			//System.out.println("Child2:");
+			for(double d : child2) {
+				//System.out.println("W: " + d);
+			}
+			//System.out.println();
+
+			mutate(child1);
+			mutate(child2);
+
+			newPop.add(new Genome(child1, 0));
+			newPop.add(new Genome(child2, 0));
+		}
+
+		population = newPop;
+		
+		
+		return population;
+	}
+	
+	public Genome getRoulette()
+	{
+		Random random = new Random();
+		double slice = (double) (random.nextFloat()*totalFitness);
+		Genome ret = new Genome();
+		double fitnessCounter = 0;
+		
+		for(int i = 0; i < popSize; i++) {
+			fitnessCounter += population.get(i).getFitness();
+			
+			if(fitnessCounter >= slice)	{
+				return population.get(i);				
+			}
+		}
+		return ret;
 	}
 	
 }

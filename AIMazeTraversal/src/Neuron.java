@@ -4,7 +4,6 @@ import java.util.Random;
 public class Neuron {
 	
 	private int numInputs;
-	private ArrayList<Neuron> neurons;
 	private ArrayList<Double> weights;
 	private Random random;
 

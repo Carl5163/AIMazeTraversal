@@ -1,10 +1,10 @@
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
@@ -24,6 +24,7 @@ public class Bee {
 	private int[][] map;
 	private int startDist;
 	private int fitness;
+	NeuralNet brain;
 	
 	public Bee(int x, int y, int[][] map, int w, int h) throws IOException {
 		this.x = x;
@@ -42,11 +43,41 @@ public class Bee {
 
 		p = new Pathfinder(map, w, h);
 		startDist = findDistanceToGoal();
+		brain = new NeuralNet();
 		
 	}
 	
+	void update(ArrayList<Boolean> inputs, Genome mygenome) {
+		
+		ArrayList<Double> in = new ArrayList<Double>();
+		
+		for(int i = 0; i < inputs.size(); i++) 
+		{
+			in.add(inputs.get(i) ? 1.0 : -1.0);
+		}
+		ArrayList<Double> output = brain.update(in);
+		
+		double high = output.get(0);
+		//System.out.println("Outputs: \n" + high);
+		
+		int highest = 0;
+		for(int i = 1; i < 4; i++) {
+			//System.out.println(output.get(i));
+			if(output.get(i) > high) {
+				high = output.get(i);
+				highest = i;
+			}
+		}
+		
+		move(map, highest);
+		mygenome.fitness = findFitness();
+		
+		
+	}
+
+	
 	public int findFitness() {
-		fitness = startDist-p.getPathLength(x, y);
+		fitness = Math.max(0, startDist-p.getPathLength(x, y));
 		return fitness;
 	}
 	
@@ -89,5 +120,10 @@ public class Bee {
 	}
 	public int getY() {
 		return y;
+	}
+
+	public void setPosition(int newX, int newY) {
+		x = newX;
+		y = newY;
 	}
 }

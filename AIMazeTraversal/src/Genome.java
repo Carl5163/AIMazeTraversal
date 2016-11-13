@@ -1,8 +1,8 @@
 import java.util.ArrayList;
 
 public class Genome {
-	private ArrayList<Double> weights;
-	private double fitness = 0;
+	ArrayList<Double> weights;
+	double fitness = 0;
 	
 	public Genome() {
 		fitness = 0;

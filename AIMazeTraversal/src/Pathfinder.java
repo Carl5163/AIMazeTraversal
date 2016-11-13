@@ -16,7 +16,7 @@ public class Pathfinder {
 	public Pathfinder(int[][] intMap, int w, int h) {
 
 		map = new Cell[w][h];
-		System.out.printf("Map array created with dimensions: %dx%d.\n", w, h);
+		//System.out.printf("Map array created with dimensions: %dx%d.\n", w, h);
 		mapWidth = w;
 		mapHeight = h;
 		init(intMap);
@@ -121,7 +121,7 @@ public class Pathfinder {
 					map[i][j] = new Cell(i,j);	
 					map[i][j].x = i;
 					map[i][j].y = j;	
-					System.out.printf("Created a cell at the entrance: (%d,%d).\n", i,j);			
+					//System.out.printf("Created a cell at the entrance: (%d,%d).\n", i,j);			
 				} else if(intMap[i][j] == DrawPanel.EXIT) {
 					map[i][j] = new Cell(i,j);
 					map[i][j].x = i;
@@ -139,7 +139,7 @@ public class Pathfinder {
 				}
 			}
 		}
-		System.out.println("A* initialized.");
+		//System.out.println("A* initialized.");
 	}
 	
 	private void resetMap() {

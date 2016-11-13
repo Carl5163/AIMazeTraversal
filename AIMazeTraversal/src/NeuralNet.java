@@ -25,7 +25,7 @@ public class NeuralNet {
 		try {
 			prefs.load(new FileInputStream("config.ini"));
 			numInputs = Integer.parseInt(prefs.getProperty("NumInputs"));
-			numHiddenLayers = Integer.parseInt(prefs.getProperty("NumHidden"));
+			numHiddenLayers = 1;
 			neuronsPerHiddenLayer = Integer.parseInt(prefs.getProperty("NeuronsPerHiddenLayer"));
 			numOutputs = Integer.parseInt(prefs.getProperty("NumOutputs"));
 			activationResponse = Double.parseDouble(prefs.getProperty("ActivationResponse"));
@@ -40,11 +40,12 @@ public class NeuralNet {
 	
 	public void createNet() {
 		
+		layers = new ArrayList<Layer>();
 		layers.add(new Layer(neuronsPerHiddenLayer, numInputs));
 		for(int i = 0; i < numHiddenLayers-1; i++) {
 			layers.add(new Layer(neuronsPerHiddenLayer, neuronsPerHiddenLayer));
 		}
-		layers.add(new Layer(numOutputs, numInputs));
+		layers.add(new Layer(numOutputs, neuronsPerHiddenLayer));
 		
 	}
 	
@@ -94,13 +95,15 @@ public class NeuralNet {
 
 		Layer curLayer;
 		Neuron curNeuron;
+		int weightIndex = 0;
 				
 		for(int i = 0; i < numHiddenLayers+1; i++) {
 			curLayer = layers.get(i);
 			for(int j = 0; j < curLayer.getNumNeurons(); j++) {
 				curNeuron = curLayer.getNeuron(j);
 				for(int k = 0; k < curNeuron.getNumInputs(); k++) {
-					curNeuron.setWeight(k, newWeights.get(k));
+					curNeuron.setWeight(k, newWeights.get(weightIndex));
+					weightIndex++;
 				}
 			}
 		}
@@ -109,22 +112,21 @@ public class NeuralNet {
 	public ArrayList<Double> update(ArrayList<Double> inputs) {
 		
 		ArrayList<Double> outputs;
-		int weightIndex;
+		int weightIndex = 0;
 		Layer curLayer;
 		Neuron curNeuron;
 		
 		outputs = new ArrayList<Double>();
 		
-		for(int i = 0; i < numHiddenLayers; i++) {
+		for(int i = 0; i < numHiddenLayers+1; i++) {
 			
 			curLayer = layers.get(i);
 			// If we have just finished a layer, then the outputs of the previous layer become the inputs for the new layer.
 			if(i > 0) {
-				inputs.clear();
-				inputs.addAll(outputs);
+				inputs = outputs;
 			}
 			
-			outputs.clear();
+			outputs = new ArrayList<Double>();
 			weightIndex = 0;
 			
 			for(int j = 0; j < curLayer.getNumNeurons(); j++) {
@@ -133,15 +135,13 @@ public class NeuralNet {
 				double sigInput = 0;
 				int numIn = curNeuron.getNumInputs();
 								
-				for(int k = 0; k < numIn; k++) {
+				for(int k = 0; k < numIn-1; k++) {
 					sigInput += curNeuron.getWeight(k) * inputs.get(weightIndex);
 					weightIndex++;
 				}
 				
 				sigInput += curNeuron.getWeight(numIn-1) * bias;
-				
 				outputs.add(sigmoid(sigInput, activationResponse));
-				
 				weightIndex = 0;
 				
 			}

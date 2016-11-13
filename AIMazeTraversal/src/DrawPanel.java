@@ -1,13 +1,13 @@
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -25,11 +25,13 @@ public class DrawPanel extends JPanel implements ActionListener {
 	
 	private int gridSize = 32;
 	private File file;
-	private Bee dude;
-	private int[][] map;
-	private int mapWidth;
-	private int mapHeight;
+	private ArrayList<Bee> bees;
+	int[][] map;
+	int mapWidth;
+	int mapHeight;
 	private JFileChooser fileChooser;
+	int spawnX;
+	int spawnY;
 	
 	public DrawPanel() throws IOException {
 		fileChooser = new JFileChooser("..\\MazeEditor\\Maps");
@@ -55,17 +57,16 @@ public class DrawPanel extends JPanel implements ActionListener {
 			}
 		}
 		
-		if(dude!= null) {
-			g.setColor(Color.BLACK);			
-			g.drawString("Location: (" + dude.getX() + ", " + dude.getY() + ")", 825, 20);
-			g.drawString("Distance to Goal: " + dude.findDistanceToGoal(), 825, 35);
-			g.drawString("Fitness: " + dude.findFitness(), 825, 50);
+		if(bees!= null) {
+			
 		}
 		
 		g.setColor(oldColor);
 		
-		if(dude != null) {
-			dude.draw(g);
+		if(bees != null) {
+			for(Bee b : bees) {
+				b.draw(g);
+			}
 		}
 		
 		
@@ -93,7 +94,8 @@ public class DrawPanel extends JPanel implements ActionListener {
 				repaint();
 				dis.close();
 				
-				dude = new Bee(dx, dy, map, mapWidth, mapHeight);
+				spawnX = dx;
+				spawnY = dy;
 				
 			
 			} else {
@@ -112,10 +114,8 @@ public class DrawPanel extends JPanel implements ActionListener {
 		g.drawRect(x, y, 32, 32);
 	}
 	
-	public void update(int dir) {
-		if(dude != null) {
-			dude.move(map, dir);
-		}
+	public void update(ArrayList<Bee> bees) {
+		this.bees = bees;
 		repaint();
 	}
 
@@ -137,7 +137,7 @@ public class DrawPanel extends JPanel implements ActionListener {
 				}
 			}
 		} else if(command.equals("CALCFIT")) {
-			System.out.println("Fitness: " + dude.findFitness());
+			
 		}
 	}
 	
