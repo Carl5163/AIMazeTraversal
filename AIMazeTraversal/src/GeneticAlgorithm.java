@@ -56,18 +56,16 @@ public class GeneticAlgorithm {
 	public void crossover(ArrayList<Double> parent1, ArrayList<Double> parent2, ArrayList<Double> child1, ArrayList<Double> child2) {
 		Random random = new Random();
 		if(random.nextFloat() > crossoverRate || parent1 == parent2) {
-			child1 = parent1;
-			child2 = parent2;
-			System.out.println((random.nextFloat() > crossoverRate) + ", " + (parent1 == parent2));
+			child1.addAll(parent1);
+			child2.addAll(parent2);
 		} else {
-			System.out.println((random.nextFloat() > crossoverRate) + ", " + (parent1 == parent2));
 			int crossoverPoint = random.nextInt(chromeLength-1);
 			for(int i = 0; i < crossoverPoint; i++)
 			{
 				child1.add(parent1.get(i));
 				child2.add(parent2.get(i));
 			}
-			for(int i = crossoverPoint; i < parent2.size(); i++)
+			for(int i = crossoverPoint; i < parent1.size(); i++)
 			{
 				child1.add(parent2.get(i));
 				child2.add(parent1.get(i));
@@ -121,7 +119,7 @@ public class GeneticAlgorithm {
 		double highest = 0;
 		double lowest  = Integer.MAX_VALUE;
 		
-		for (int i=0; i < popSize; ++i) {
+		for (int i=0; i < popSize; i++) {
 			if (population.get(i).fitness > highest) {
 				highest	 = population.get(i).fitness;				
 				fittestGenome = i;
@@ -153,22 +151,13 @@ public class GeneticAlgorithm {
 			ArrayList<Double> child2 = new ArrayList<Double>();
 
 			crossover(mum.weights, dad.weights, child1, child2);
-			//System.out.println("Child1:");
-			for(double d : child1) {
-				//System.out.println("W: " + d);
-			}
-			//System.out.println();
-			//System.out.println("Child2:");
-			for(double d : child2) {
-				//System.out.println("W: " + d);
-			}
-			//System.out.println();
-
 			mutate(child1);
 			mutate(child2);
-
-			newPop.add(new Genome(child1, 0));
-			newPop.add(new Genome(child2, 0));
+			
+			Genome newGenome1 = new Genome(child1, 0);
+			Genome newGenome2 = new Genome(child2, 0);
+			newPop.add(newGenome1);
+			newPop.add(newGenome2);
 		}
 
 		population = newPop;

@@ -147,12 +147,8 @@ public class AIMT extends JFrame implements KeyListener, ActionListener {
 					if(numTicks % 100 == 0)
 						System.out.println("Tick: " + numTicks + "/" + NUM_TICKS);
 				} else {
-					timer.stop();
-					System.out.println("Generation complete (Popsize: " + genomePop.size() + "). Creating a new one.");
-										
+					timer.stop();	
 					genomePop = gen.epoch(genomePop);
-					System.out.println("New pop: (Popsize: " + genomePop.size()+ ")");
-					
 					restart();				
 				}
 			}
@@ -172,7 +168,6 @@ public class AIMT extends JFrame implements KeyListener, ActionListener {
 	}
 	public void restart() {
 		for(int i = 0; i < POP_SIZE; i++) {
-			System.out.println("HAHAH");
 			pop.get(i).brain.putWeights(genomePop.get(i).weights);
 			pop.get(i).setPosition(drawPanel.spawnX, drawPanel.spawnY);
 		}
