@@ -7,7 +7,7 @@ import java.util.Random;
 
 public class GeneticAlgorithm {
 
-	private int popSize = 50;
+	int popSize = 0;
 	int chromeLength;
 	private double totalFitness;
 	double averageFitness;	
@@ -23,7 +23,7 @@ public class GeneticAlgorithm {
 	private Properties prefs;
 	ArrayList<Genome> population;
 	
-	public GeneticAlgorithm(int chromeLength) {
+	public GeneticAlgorithm(int chromeLength, int popSize) {
 		prefs = new Properties();
 		try {
 			prefs.load(new FileInputStream("config.ini"));
@@ -40,6 +40,7 @@ public class GeneticAlgorithm {
 		
 		
 		this.chromeLength = chromeLength;
+		this.popSize = popSize;
 		
 		Random random = new Random();
 		population = new ArrayList<Genome>();

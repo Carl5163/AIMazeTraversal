@@ -25,7 +25,7 @@ public class NeuralNet {
 		try {
 			prefs.load(new FileInputStream("config.ini"));
 			numInputs = Integer.parseInt(prefs.getProperty("NumInputs"));
-			numHiddenLayers = 1;
+			numHiddenLayers = Integer.parseInt(prefs.getProperty("NumHidden"));
 			neuronsPerHiddenLayer = Integer.parseInt(prefs.getProperty("NeuronsPerHiddenLayer"));
 			numOutputs = Integer.parseInt(prefs.getProperty("NumOutputs"));
 			activationResponse = Double.parseDouble(prefs.getProperty("ActivationResponse"));

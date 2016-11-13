@@ -4,8 +4,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Properties;
 
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -16,22 +19,36 @@ import javax.swing.Timer;
 
 public class AIMT extends JFrame implements KeyListener, ActionListener {
 	
-	public static int NUM_TICKS = 500;
-	public static final int TICK_LENGTH = 5;
-	public static int POP_SIZE = 50;
+	public int numTicks = 500;
+	public int tickLength = 1;
 	
 	DrawPanel drawPanel;
 	ArrayList<Bee> pop;
 	ArrayList<Genome> genomePop;
-	int numTicks = 0;
+	int ticks = 0;
 	GeneticAlgorithm gen;
 	Timer timer;
+	private int genNum;
+	private Properties prefs;
+	private int popSize;
 	
 	public static void main(String[] args) {
 		new AIMT();
 	}
 	
 	public AIMT() {
+		prefs = new Properties();
+		try {
+			prefs.load(new FileInputStream("config.ini"));
+			numTicks = Integer.parseInt(prefs.getProperty("NumTicks"));
+			popSize = Integer.parseInt(prefs.getProperty("PopSize"));
+			tickLength = Integer.parseInt(prefs.getProperty("TickLength"));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 		try {
 			drawPanel = new DrawPanel();
 		} catch (IOException e) {
@@ -105,23 +122,24 @@ public class AIMT extends JFrame implements KeyListener, ActionListener {
 		
 		if(e.getKeyCode() == KeyEvent.VK_ENTER) {
 			pop = new ArrayList<Bee>();
-			for(int i = 0; i < POP_SIZE; i++) {
+			for(int i = 0; i < popSize; i++) {
 				try {
 					pop.add(new Bee(drawPanel.spawnX, drawPanel.spawnY, drawPanel.map, drawPanel.mapWidth, drawPanel.mapHeight));
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
 			}
-			gen = new GeneticAlgorithm(pop.get(0).brain.getNumberOfWeights());
+			gen = new GeneticAlgorithm(pop.get(0).brain.getNumberOfWeights(), popSize);
 			genomePop = gen.population;
 
-			for(int i = 0; i < POP_SIZE; i++) {
+			for(int i = 0; i < gen.popSize; i++) {
 				pop.get(i).brain.putWeights(genomePop.get(i).weights);
 			}
 
-			timer = new Timer(TICK_LENGTH, this);
+			timer = new Timer(tickLength, this);
 			timer.setActionCommand("timer");
 			timer.start();
+			genNum=0;
 			
 		}
 		
@@ -139,16 +157,18 @@ public class AIMT extends JFrame implements KeyListener, ActionListener {
 		if(e.getActionCommand().equals("EXIT")) {
 			System.exit(0);
 		} else if(e.getActionCommand().equals("timer")) {
-			if(numTicks < NUM_TICKS) {
+			if(ticks < numTicks) {
 					updateBees();
 					drawPanel.update(pop);
 					repaint();
-					numTicks++;
-					if(numTicks % 100 == 0)
-						System.out.println("Tick: " + numTicks + "/" + NUM_TICKS);
+					ticks++;
+					if(ticks % 100 == 0)
+						System.out.println("Tick: " + ticks + "/" + numTicks);
 				} else {
 					timer.stop();	
 					genomePop = gen.epoch(genomePop);
+					System.out.println("Generation: " + genNum);
+					genNum++;
 					restart();				
 				}
 			}
@@ -167,12 +187,12 @@ public class AIMT extends JFrame implements KeyListener, ActionListener {
 		}
 	}
 	public void restart() {
-		for(int i = 0; i < POP_SIZE; i++) {
+		for(int i = 0; i < popSize; i++) {
 			pop.get(i).brain.putWeights(genomePop.get(i).weights);
 			pop.get(i).setPosition(drawPanel.spawnX, drawPanel.spawnY);
 		}
-		numTicks = 0;
-		timer = new Timer(TICK_LENGTH, this);
+		ticks = 0;
+		timer = new Timer(tickLength, this);
 		timer.setActionCommand("timer");
 		timer.start();
 	}
