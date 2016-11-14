@@ -96,11 +96,11 @@ public class AIMT extends JFrame implements KeyListener, ActionListener {
 		menu = new JMenu("Edit");	
 		menu.setMnemonic(KeyEvent.VK_E);
 			
-		menuItem = new JMenuItem("Calculate Fittness");
-		menuItem.setActionCommand("CALCFIT");
-		menuItem.setMnemonic(KeyEvent.VK_C);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK));
-		menuItem.addActionListener(drawPanel);
+		menuItem = new JMenuItem("Preferences");
+		menuItem.setActionCommand("PREFS");
+		menuItem.setMnemonic(KeyEvent.VK_P);
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_DOWN_MASK));
+		menuItem.addActionListener(this);
 		menu.add(menuItem);
 
 		menuBar.add(menu);
@@ -139,7 +139,7 @@ public class AIMT extends JFrame implements KeyListener, ActionListener {
 			timer = new Timer(tickLength, this);
 			timer.setActionCommand("timer");
 			timer.start();
-			genNum=0;
+			genNum = 0;
 			
 		}
 		
@@ -158,21 +158,24 @@ public class AIMT extends JFrame implements KeyListener, ActionListener {
 			System.exit(0);
 		} else if(e.getActionCommand().equals("timer")) {
 			if(ticks < numTicks) {
-					updateBees();
-					drawPanel.update(pop);
-					repaint();
-					ticks++;
-					if(ticks % 100 == 0)
-						System.out.println("Tick: " + ticks + "/" + numTicks);
-				} else {
-					timer.stop();	
-					genomePop = gen.epoch(genomePop);
-					System.out.println("Generation: " + genNum);
-					genNum++;
-					restart();				
-				}
+				updateBees();
+				drawPanel.update(pop);
+				repaint();
+				ticks++;
+				if(ticks % 100 == 0)
+					System.out.println("Tick: " + ticks + "/" + numTicks);
+			} else {
+				timer.stop();	
+				genomePop = gen.epoch(genomePop);
+				System.out.println("Generation: " + genNum);
+				genNum++;
+				restart();				
 			}
+		} else if(e.getActionCommand().equals("PREFS")) {
+			PrefsDialog d = new PrefsDialog();
+			d.setLocationRelativeTo(this);
 		}
+	}
 	private void updateBees() {
 		for(int bi = 0; bi < pop.size(); bi++) {
 			ArrayList<Boolean> inputs = new ArrayList<Boolean>();
