@@ -1,66 +1,37 @@
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Properties;
-import java.util.Random;
+import java.io.*;
+import java.util.*;
 
 public class GeneticAlgorithm {
 
-	int popSize = 0;
-	int chromeLength;
-	private double totalFitness;
-	double averageFitness;	
-	double worstFitness;	
-	double bestFitness;	
-	int fittestGenome;
-	int generation;
-	private double crossoverRate = 0;
-	private double mutationRate = 0;
-	private double maxPerturbation = 0;
-	private int numElite = 0;
-	private int numCopiesElite = 0;
-	private Properties prefs;
-	ArrayList<Genome> population;
+	private int totalFitness;
+	private double averageFitness;	
+	private int worstFitness;	
+	private int bestFitness;	
+	private ArrayList<Genome> population;
+	private SimPrefs prefs;
 	
-	public GeneticAlgorithm(int chromeLength, int popSize) {
-		prefs = new Properties();
-		try {
-			prefs.load(new FileInputStream("config.ini"));
-			crossoverRate = Double.parseDouble(prefs.getProperty("CrossoverRate"));
-			mutationRate = Double.parseDouble(prefs.getProperty("MutationRate"));
-			maxPerturbation = Double.parseDouble(prefs.getProperty("MaxPerturbation"));
-			numElite = Integer.parseInt(prefs.getProperty("NumElite"));
-			numCopiesElite = Integer.parseInt(prefs.getProperty("NumCopiesElite"));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public GeneticAlgorithm(SimPrefs prefs, int chromeLength) {
 		
-		
-		this.chromeLength = chromeLength;
-		this.popSize = popSize;
+		this.prefs = prefs;
 		
 		Random random = new Random();
 		population = new ArrayList<Genome>();
 		
-		for(int i = 0; i < popSize; i++) {
+		for(int i = 0; i < prefs.popSize; i++) {
 			population.add(new Genome());
 			for(int j = 0; j < chromeLength; j++) {
 				population.get(i).addWeight(random.nextDouble() - 2 * random.nextDouble());
 			}
-		}
-		
+		}		
 	}
 	
 	public void crossover(ArrayList<Double> parent1, ArrayList<Double> parent2, ArrayList<Double> child1, ArrayList<Double> child2) {
 		Random random = new Random();
-		if(random.nextFloat() > crossoverRate || parent1 == parent2) {
+		if(random.nextFloat() > prefs.crossoverRate || parent1 == parent2) {
 			child1.addAll(parent1);
 			child2.addAll(parent2);
 		} else {
-			int crossoverPoint = random.nextInt(chromeLength-1);
+			int crossoverPoint = random.nextInt(parent1.size()-1);
 			for(int i = 0; i < crossoverPoint; i++)
 			{
 				child1.add(parent1.get(i));
@@ -77,8 +48,8 @@ public class GeneticAlgorithm {
 	public void mutate(ArrayList<Double> chromo) {
 		Random random = new Random();
 		for(int i = 0; i < chromo.size(); i++) {
-			if(random.nextFloat() < mutationRate) {
-				chromo.set(i, (random.nextDouble() - 2 * random.nextDouble()) * maxPerturbation );
+			if(random.nextFloat() < prefs.mutationRate) {
+				chromo.set(i, (random.nextDouble() - 2 * random.nextDouble()) * prefs.maxPerturbation );
 			}
 		}
 	}
@@ -117,33 +88,32 @@ public class GeneticAlgorithm {
 		} while(swapped);
 
 		totalFitness = 0;		
-		double highest = 0;
-		double lowest  = Integer.MAX_VALUE;
+		int highest = 0;
+		int lowest  = Integer.MAX_VALUE;
 		
-		for (int i=0; i < popSize; i++) {
-			if (population.get(i).fitness > highest) {
-				highest	 = population.get(i).fitness;				
-				fittestGenome = i;
-				bestFitness	= highest;
+		for (int i=0; i < prefs.popSize; i++) {
+			if (population.get(i).getFitness() > highest) {
+				highest	 = population.get(i).getFitness();				
+				bestFitness = highest;
 			}
-			if (population.get(i).fitness < lowest) {
-				lowest = population.get(i).fitness;				
+			if (population.get(i).getFitness() < lowest) {
+				lowest = population.get(i).getFitness();				
 				worstFitness = lowest;
 			}
 			
-			totalFitness += population.get(i).fitness;
+			totalFitness += population.get(i).getFitness();
 				
 		}
 		
-		averageFitness = totalFitness / popSize;
+		averageFitness = totalFitness / prefs.popSize;
 		
 		ArrayList<Genome> newPop = new ArrayList<Genome>();
 		
-		if((numCopiesElite * numElite % 2) == 0) {
-			getBest(numElite, numCopiesElite, newPop);
+		if((prefs.numCopiesElite * prefs.numElite % 2) == 0) {
+			getBest(prefs.numElite, prefs.numCopiesElite, newPop);
 		}
 		
-		while (newPop.size() < popSize)
+		while (newPop.size() < prefs.popSize)
 		{
 			Genome mum = getRoulette();
 			Genome dad = getRoulette();
@@ -151,7 +121,7 @@ public class GeneticAlgorithm {
 			ArrayList<Double> child1 = new ArrayList<Double>();
 			ArrayList<Double> child2 = new ArrayList<Double>();
 
-			crossover(mum.weights, dad.weights, child1, child2);
+			crossover(mum.getWeights(), dad.getWeights(), child1, child2);
 			mutate(child1);
 			mutate(child2);
 			
@@ -174,7 +144,7 @@ public class GeneticAlgorithm {
 		Genome ret = new Genome();
 		double fitnessCounter = 0;
 		
-		for(int i = 0; i < popSize; i++) {
+		for(int i = 0; i < prefs.popSize; i++) {
 			fitnessCounter += population.get(i).getFitness();
 			
 			if(fitnessCounter >= slice)	{
@@ -183,5 +153,24 @@ public class GeneticAlgorithm {
 		}
 		return ret;
 	}
+
+	public ArrayList<Genome> getPopulation() {
+		return population;
+	}
+
+	public double getAverageFitness() {
+		return averageFitness;
+	}
+	public int getWorstFitness() {
+		return worstFitness;
+	}
+
+	public int getBestFitness() {
+		return bestFitness;
+	}
+	public int getTotalFitness() {
+		return totalFitness;
+	}
+
 	
 }

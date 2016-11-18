@@ -1,24 +1,17 @@
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
+import javax.swing.*;
+import javax.swing.border.*;
 
-public class PrefsDialog extends JDialog{
+@SuppressWarnings("serial")
+public class PrefsDialog extends JDialog implements ActionListener{
 	
 	private JPanel contentPanel;
-	private JTextField tfInputs;
 	private JTextField tfHidden;
 	private JTextField tfNeuronsPerHidden;
-	private JTextField tfOutputs;
 	private JTextField tfActivation;
 	private JTextField tfTicks;
 	private JTextField tfTickLength;
@@ -29,7 +22,12 @@ public class PrefsDialog extends JDialog{
 	private JTextField tfNumElite;
 	private JTextField tfCopies;
 	
-	public PrefsDialog() {
+	private SimPrefs prefs;
+	private AIMT parent;
+	
+	public PrefsDialog(SimPrefs prefs, AIMT parent) {
+		this.prefs = prefs;
+		this.parent = parent;
 		setupDialog();
 		setVisible(true);
 	}
@@ -39,250 +37,222 @@ public class PrefsDialog extends JDialog{
 		contentPanel = new JPanel();
 		setTitle("Preferences");
 		setModalityType(ModalityType.APPLICATION_MODAL);
-		setBounds(100, 100, 686, 340);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-		getContentPane().add(contentPanel, BorderLayout.WEST);
+		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		
-		JLabel lblNeuralNetworkSettings = new JLabel("Neural Network Settings");
+		MyInputVerifier iv = new MyInputVerifier(true);		
+		MyInputVerifier dv = new MyInputVerifier(false);	
 		
-		JLabel lblNewLabel = new JLabel("Number of Inputs:");
-		
-		tfInputs = new JTextField();
-		tfInputs.setColumns(10);
-		
-		tfHidden = new JTextField();
-		tfHidden.setColumns(10);
-		
-		JLabel lblNumberOfHidden = new JLabel("Number of Hidden Layers:");
-		
-		tfNeuronsPerHidden = new JTextField();
-		tfNeuronsPerHidden.setColumns(10);
-		
-		JLabel lblNeuronsPerHidden = new JLabel("Neurons Per Hidden Layers:");
-		
-		tfOutputs = new JTextField();
-		tfOutputs.setColumns(10);
-		
-		JLabel lblNumberOfOutputs = new JLabel("Number of Outputs:");
-		
-		tfActivation = new JTextField();
-		tfActivation.setColumns(10);
-		
+		JLabel lblNeuralNetworkSettings = new JLabel("Neural Network Settings");		
+		JLabel lblNumberOfHidden = new JLabel("Number of Hidden Layers:");	
+		tfHidden = new JTextField();			
+		tfHidden.setText(Integer.toString(prefs.numHiddenLayers));
+		tfHidden.setInputVerifier(iv);
+		JLabel lblNeuronsPerHidden = new JLabel("Neurons Per Hidden Layers:");	
+		tfNeuronsPerHidden = new JTextField();	
+		tfNeuronsPerHidden.setText(Integer.toString(prefs.neuronsPerHiddenLayer));	
+		tfNeuronsPerHidden.setInputVerifier(iv);			
 		JLabel lblActivationResponse = new JLabel("Activation Response:");
-		
-		JLabel lblNumberOfTicks = new JLabel("Number of Ticks:");
-		
-		tfTicks = new JTextField();
-		tfTicks.setColumns(10);
-		
-		JLabel lblTicks = new JLabel("Tick Length:");
-		
+		tfActivation = new JTextField();		
+		tfActivation.setText(Double.toString(prefs.activationResponse));
+		tfActivation.setInputVerifier(dv);				
+
+		JLabel lblGeneticAlgorithm = new JLabel("Genetic Algorithm Settings");		
+		JLabel lblNumberOfTicks = new JLabel("Number of Ticks:");		
+		tfTicks = new JTextField();	
+		tfTicks.setText(Integer.toString(prefs.numTicks));		
+		tfTicks.setInputVerifier(iv);			
+		JLabel lblTickLength = new JLabel("Tick Length:");		
 		tfTickLength = new JTextField();
-		tfTickLength.setColumns(10);
-		
-		JLabel lblPopulationSize = new JLabel("Population Size:");
-		
+		tfTickLength.setText(Integer.toString(prefs.tickLength));
+		tfTickLength.setInputVerifier(iv);		
+		JLabel lblPopulationSize = new JLabel("Population Size:");		
 		tfPopSize = new JTextField();
-		tfPopSize.setColumns(10);
-		
+		tfPopSize.setText(Integer.toString(prefs.popSize));
+		tfPopSize.setInputVerifier(iv);				
 		JLabel lblCrossoverRate = new JLabel("Crossover Rate:");
-		
 		tfCrossover = new JTextField();
-		tfCrossover.setColumns(10);
-		
-		JLabel lblGeneticAlgorithm = new JLabel("Genetic Algorithm Settings");
-		
-		JLabel lblMutationRate = new JLabel("Mutation Rate:");
-		
+		tfCrossover.setText(Double.toString(prefs.crossoverRate));	
+		tfCrossover.setInputVerifier(dv);			
+		JLabel lblMutationRate = new JLabel("Mutation Rate:");		
 		tfMutationRate = new JTextField();
-		tfMutationRate.setColumns(10);
-		
-		tfPerturbation = new JTextField();
-		tfPerturbation.setColumns(10);
-		
+		tfMutationRate.setText(Double.toString(prefs.mutationRate));	
+		tfMutationRate.setInputVerifier(dv);		
 		JLabel lblMaxPerturbation = new JLabel("Max Perturbation:");
-		
+		tfPerturbation = new JTextField();		
+		tfPerturbation.setText(Double.toString(prefs.maxPerturbation));	
+		tfPerturbation.setInputVerifier(dv);		
 		JLabel lblNumberOfElite = new JLabel("Number of Elite:");
-		
 		tfNumElite = new JTextField();
-		tfNumElite.setColumns(10);
+		tfNumElite.setText(Integer.toString(prefs.numElite));	
+		tfNumElite.setInputVerifier(iv);		
+		JLabel lblNumCopies = new JLabel("Copies of the Elite:");
+		tfCopies = new JTextField();	
+		tfCopies.setText(Integer.toString(prefs.numCopiesElite));	
+		tfCopies.setInputVerifier(iv);			
 		
-		tfCopies = new JTextField();
-		tfCopies.setColumns(10);
 		
-		JLabel lblCopiesOfElite = new JLabel("Copies of Elite:");
-		GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
-		gl_contentPanel.setHorizontalGroup(
-			gl_contentPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_contentPanel.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_contentPanel.createSequentialGroup()
-							.addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-								.addGroup(gl_contentPanel.createSequentialGroup()
-									.addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-										.addComponent(lblNewLabel, Alignment.LEADING)
-										.addComponent(lblNumberOfHidden, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 138, Short.MAX_VALUE)
-										.addComponent(lblNeuronsPerHidden, Alignment.LEADING))
-									.addPreferredGap(ComponentPlacement.RELATED)
-									.addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-										.addComponent(tfNeuronsPerHidden, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(tfHidden, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(tfInputs, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-								.addGroup(gl_contentPanel.createSequentialGroup()
-									.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-										.addGroup(gl_contentPanel.createSequentialGroup()
-											.addComponent(lblNumberOfOutputs, GroupLayout.DEFAULT_SIZE, 138, Short.MAX_VALUE)
-											.addGap(4))
-										.addGroup(gl_contentPanel.createSequentialGroup()
-											.addComponent(lblActivationResponse)
-											.addPreferredGap(ComponentPlacement.RELATED)))
-									.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-										.addComponent(tfActivation, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(tfOutputs, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
-							.addGap(18))
-						.addGroup(gl_contentPanel.createSequentialGroup()
-							.addComponent(lblNeuralNetworkSettings)
-							.addPreferredGap(ComponentPlacement.RELATED)))
-					.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
-							.addGroup(gl_contentPanel.createSequentialGroup()
-								.addComponent(lblNumberOfTicks, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)
-								.addPreferredGap(ComponentPlacement.RELATED)
-								.addComponent(tfTicks, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-							.addGroup(gl_contentPanel.createSequentialGroup()
-								.addComponent(lblCrossoverRate)
-								.addGap(4)
-								.addComponent(tfCrossover, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-							.addComponent(lblGeneticAlgorithm, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-							.addGroup(gl_contentPanel.createSequentialGroup()
-								.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
-									.addComponent(lblPopulationSize, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-									.addComponent(lblTicks, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-								.addPreferredGap(ComponentPlacement.RELATED)
-								.addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-									.addComponent(tfPopSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-									.addComponent(tfTickLength, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
-						.addGroup(gl_contentPanel.createSequentialGroup()
-							.addComponent(lblMutationRate)
-							.addGap(4)
-							.addComponent(tfMutationRate, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addGroup(gl_contentPanel.createSequentialGroup()
-							.addComponent(lblMaxPerturbation)
-							.addGap(4)
-							.addComponent(tfPerturbation, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addGroup(gl_contentPanel.createSequentialGroup()
-							.addComponent(lblNumberOfElite, GroupLayout.PREFERRED_SIZE, 88, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(tfNumElite, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addGroup(gl_contentPanel.createSequentialGroup()
-							.addComponent(lblCopiesOfElite, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(tfCopies, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
+		GroupLayout layout = new GroupLayout(contentPanel);
+		layout.setAutoCreateContainerGaps(true);
+		layout.setAutoCreateGaps(true);
+		
+		layout.setHorizontalGroup(
+			layout.createSequentialGroup()
+			.addGroup(layout.createParallelGroup()	
+				.addComponent(lblNeuralNetworkSettings)
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(lblNumberOfHidden)
+					.addComponent(tfHidden)
+				)
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(lblNeuronsPerHidden)
+					.addComponent(tfNeuronsPerHidden)
+				)
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(lblActivationResponse)
+					.addComponent(tfActivation)
+				)
+			)
+			.addGroup(layout.createParallelGroup()		
+				.addComponent(lblGeneticAlgorithm)	
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(lblNumberOfTicks)
+					.addComponent(tfTicks)
+				)
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(lblTickLength)
+					.addComponent(tfTickLength)
+				)
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(lblPopulationSize)
+					.addComponent(tfPopSize)
+				)
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(lblCrossoverRate)
+					.addComponent(tfCrossover)
+				)
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(lblMutationRate)
+					.addComponent(tfMutationRate)
+				)
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(lblMaxPerturbation)
+					.addComponent(tfPerturbation)
+				)
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(lblNumberOfElite)
+					.addComponent(tfNumElite)
+				)
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(lblNumCopies)
+					.addComponent(tfCopies)
+				)
+			)				
 		);
-		gl_contentPanel.setVerticalGroup(
-			gl_contentPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_contentPanel.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(lblGeneticAlgorithm)
-						.addComponent(lblNeuralNetworkSettings))
-					.addGap(18)
-					.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_contentPanel.createSequentialGroup()
-							.addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-								.addComponent(lblNewLabel)
-								.addComponent(tfInputs, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-								.addComponent(tfHidden, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addGroup(gl_contentPanel.createSequentialGroup()
-									.addGap(6)
-									.addComponent(lblNumberOfHidden)))
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-								.addGroup(gl_contentPanel.createSequentialGroup()
-									.addGap(6)
-									.addComponent(lblNeuronsPerHidden))
-								.addComponent(tfNeuronsPerHidden, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
-								.addComponent(lblNumberOfOutputs)
-								.addComponent(tfOutputs, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-						.addGroup(gl_contentPanel.createSequentialGroup()
-							.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-								.addComponent(tfTicks, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addGroup(gl_contentPanel.createSequentialGroup()
-									.addGap(6)
-									.addComponent(lblNumberOfTicks)))
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-								.addComponent(tfTickLength, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addGroup(gl_contentPanel.createSequentialGroup()
-									.addGap(6)
-									.addComponent(lblTicks)))
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-								.addGroup(gl_contentPanel.createSequentialGroup()
-									.addGap(6)
-									.addComponent(lblPopulationSize))
-								.addComponent(tfPopSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-							.addGap(6)
-							.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-								.addGroup(gl_contentPanel.createSequentialGroup()
-									.addGap(6)
-									.addComponent(lblCrossoverRate))
-								.addComponent(tfCrossover, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_contentPanel.createSequentialGroup()
-							.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-								.addGroup(gl_contentPanel.createSequentialGroup()
-									.addGap(6)
-									.addComponent(lblMutationRate))
-								.addComponent(tfMutationRate, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-							.addGap(6)
-							.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-								.addGroup(gl_contentPanel.createSequentialGroup()
-									.addGap(6)
-									.addComponent(lblMaxPerturbation))
-								.addComponent(tfPerturbation, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-							.addGap(6)
-							.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-								.addComponent(tfNumElite, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addGroup(gl_contentPanel.createSequentialGroup()
-									.addGap(6)
-									.addComponent(lblNumberOfElite)))
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-								.addGroup(gl_contentPanel.createSequentialGroup()
-									.addGap(6)
-									.addComponent(lblCopiesOfElite))
-								.addComponent(tfCopies, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-						.addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
-							.addComponent(tfActivation, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addComponent(lblActivationResponse)))
-					.addContainerGap())
+		layout.setVerticalGroup(
+			layout.createParallelGroup()
+			.addGroup(layout.createSequentialGroup()		
+				.addComponent(lblNeuralNetworkSettings)	
+				.addGap(20)
+				.addGroup(layout.createParallelGroup()
+					.addComponent(lblNumberOfHidden)
+					.addComponent(tfHidden)
+				)
+				.addGroup(layout.createParallelGroup()
+					.addComponent(lblNeuronsPerHidden)
+					.addComponent(tfNeuronsPerHidden)
+				)
+				.addGroup(layout.createParallelGroup()
+					.addComponent(lblActivationResponse)
+					.addComponent(tfActivation)
+				)
+			)
+			.addGroup(layout.createSequentialGroup()		
+				.addComponent(lblGeneticAlgorithm)	
+				.addGap(20)
+				.addGroup(layout.createParallelGroup()
+					.addComponent(lblNumberOfTicks)
+					.addComponent(tfTicks)
+				)
+				.addGroup(layout.createParallelGroup()
+					.addComponent(lblTickLength)
+					.addComponent(tfTickLength)
+				)
+				.addGroup(layout.createParallelGroup()
+					.addComponent(lblPopulationSize)
+					.addComponent(tfPopSize)
+				)
+				.addGroup(layout.createParallelGroup()
+					.addComponent(lblCrossoverRate)
+					.addComponent(tfCrossover)
+				)
+				.addGroup(layout.createParallelGroup()
+					.addComponent(lblMutationRate)
+					.addComponent(tfMutationRate)
+				)
+				.addGroup(layout.createParallelGroup()
+					.addComponent(lblMaxPerturbation)
+					.addComponent(tfPerturbation)
+				)
+				.addGroup(layout.createParallelGroup()
+					.addComponent(lblNumberOfElite)
+					.addComponent(tfNumElite)
+				)
+				.addGroup(layout.createParallelGroup()
+					.addComponent(lblNumCopies)
+					.addComponent(tfCopies)
+				)
+			)	
 		);
-		gl_contentPanel.linkSize(SwingConstants.HORIZONTAL, lblNewLabel, lblNumberOfHidden, lblNeuronsPerHidden, lblNumberOfOutputs, lblActivationResponse
-		, lblNumberOfTicks, lblTicks, lblPopulationSize, lblCrossoverRate, lblMutationRate, lblMaxPerturbation, lblNumberOfElite, lblCopiesOfElite);
-		contentPanel.setLayout(gl_contentPanel);
 		
+		layout.linkSize(SwingConstants.VERTICAL, lblNumCopies, tfCopies, lblNumberOfElite, tfNumElite, lblMaxPerturbation, tfPerturbation, lblMutationRate, tfMutationRate, lblCrossoverRate, tfCrossover, lblPopulationSize, tfPopSize, lblTickLength, tfTickLength, lblNumberOfTicks, tfTicks, lblNumberOfHidden, tfHidden, lblNeuronsPerHidden, tfNeuronsPerHidden, lblActivationResponse, tfActivation);
+		layout.linkSize(SwingConstants.HORIZONTAL, lblNumCopies, tfCopies, lblNumberOfElite, tfNumElite, lblMaxPerturbation, tfPerturbation, lblMutationRate, tfMutationRate, lblCrossoverRate, tfCrossover, lblPopulationSize, tfPopSize, lblTickLength, tfTickLength, lblNumberOfTicks, tfTicks, lblNumberOfHidden, tfHidden, lblNeuronsPerHidden, tfNeuronsPerHidden, lblActivationResponse, tfActivation);
 		
+		contentPanel.setLayout(layout);
+				
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
-		{
-			JButton okButton = new JButton("OK");
-			okButton.setActionCommand("OK");
-			buttonPane.add(okButton);
-			getRootPane().setDefaultButton(okButton);
-		}
-		{
-			JButton cancelButton = new JButton("Cancel");
-			cancelButton.setActionCommand("Cancel");
-			buttonPane.add(cancelButton);
+		JButton okButton = new JButton("OK");
+		okButton.setActionCommand("OK");
+		okButton.addActionListener(this);
+		buttonPane.add(okButton);
+		getRootPane().setDefaultButton(okButton);
+		JButton cancelButton = new JButton("Cancel");
+		cancelButton.setActionCommand("CANCEL");
+		cancelButton.addActionListener(this);
+		buttonPane.add(cancelButton);
+		
+		pack();
+		setResizable(false);
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if(e.getActionCommand().equals("OK")) {
+			parent.stop();
+			prefs.numHiddenLayers = (int) Double.parseDouble(tfHidden.getText().trim());
+			prefs.neuronsPerHiddenLayer = (int) Double.parseDouble(tfNeuronsPerHidden.getText().trim());
+			prefs.activationResponse = Double.parseDouble(tfActivation.getText().trim());
+			prefs.numTicks = (int) Double.parseDouble(tfTicks.getText().trim());
+			prefs.tickLength = (int) Double.parseDouble(tfTickLength.getText().trim());
+			prefs.popSize = (int) Double.parseDouble(tfPopSize.getText().trim());
+			prefs.crossoverRate = Double.parseDouble(tfCrossover.getText().trim());
+			prefs.mutationRate = Double.parseDouble(tfMutationRate.getText().trim());
+			prefs.maxPerturbation = Double.parseDouble(tfPerturbation.getText().trim());
+			prefs.numElite = (int) Double.parseDouble(tfNumElite.getText().trim());
+			prefs.numCopiesElite = (int) Double.parseDouble(tfCopies.getText().trim());
+			try {
+				prefs.write();
+			} catch (FileNotFoundException e1) {
+				e1.printStackTrace();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+			dispose();
+		} else {
+			dispose();
 		}
 	}
 	

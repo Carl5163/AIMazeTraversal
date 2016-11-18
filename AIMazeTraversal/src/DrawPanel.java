@@ -1,18 +1,14 @@
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.util.*;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
+@SuppressWarnings("serial")
 public class DrawPanel extends JPanel implements ActionListener {
 		
 	private static final long MAGIC_NUMBER_XOR = 4819776984503323676L;
@@ -23,18 +19,20 @@ public class DrawPanel extends JPanel implements ActionListener {
 	public static final int ENTRANCE = 2;
 	public static final int EXIT = 3;
 	
-	private int gridSize = 32;
 	private File file;
 	private ArrayList<Bee> bees;
-	int[][] map;
-	int mapWidth;
-	int mapHeight;
+	private int[][] map;
+	private int mapWidth;
+	private int mapHeight;
 	private JFileChooser fileChooser;
-	int spawnX;
-	int spawnY;
+	private int spawnX = -1;
+	private int spawnY = -1;
+	private Map<String, String> statMap;
 	
 	public DrawPanel() throws IOException {
 		fileChooser = new JFileChooser("..\\MazeEditor\\Maps");
+		fileChooser.setFileFilter(new FileNameExtensionFilter("Map files (.map)", "map"));
+		statMap = new HashMap<String, String>();
 	}
 	
 	@Override
@@ -50,15 +48,11 @@ public class DrawPanel extends JPanel implements ActionListener {
 		g.fillRect(0, 0, getWidth(), getHeight());
 
 		if(file != null) {
-			for(int i = 0; i < mapWidth; i++) {
-				for(int j = 0; j < mapHeight; j++) {	
-					drawSquare(g, COLORS[map[i][j]], Color.BLACK, i*32, j*32);
+			for(int i = 0; i < getMapWidth(); i++) {
+				for(int j = 0; j < getMapHeight(); j++) {	
+					drawSquare(g, COLORS[getMap()[i][j]], Color.BLACK, i*32, j*32);
 				}
 			}
-		}
-		
-		if(bees!= null) {
-			
 		}
 		
 		g.setColor(oldColor);
@@ -67,6 +61,11 @@ public class DrawPanel extends JPanel implements ActionListener {
 			for(Bee b : bees) {
 				b.draw(g);
 			}
+		}
+		int i = 0; 
+		for(String s : statMap.keySet()) {
+			g.drawString(s + statMap.get(s), 810, 20 + 20*i);
+			i++;
 		}
 		
 		
@@ -81,10 +80,10 @@ public class DrawPanel extends JPanel implements ActionListener {
 			encryptedMagicNumber = dis.readLong();
 			magicNumber = encryptedMagicNumber ^ MAGIC_NUMBER_XOR;
 			if(magicNumber == MAGIC_NUMBER) {
-				for(int i = 0; i < mapWidth; i++) {
-					for(int j = 0; j < mapHeight; j++) {
-						map[i][j] = dis.readByte();
-						if(map[i][j] == ENTRANCE) {
+				for(int i = 0; i < getMapWidth(); i++) {
+					for(int j = 0; j < getMapHeight(); j++) {
+						getMap()[i][j] = dis.readByte();
+						if(getMap()[i][j] == ENTRANCE) {
 							dx = i;
 							dy = j;								
 						}
@@ -123,11 +122,11 @@ public class DrawPanel extends JPanel implements ActionListener {
 	public void actionPerformed(ActionEvent arg0) {
 		String command = arg0.getActionCommand();
 		if(command.equals("OPEN")) {
-			File potentialNewFile;
-			mapWidth = 25;
-			mapHeight = 25;
-			map = new int[mapWidth][mapHeight];
 			if(fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+				File potentialNewFile;
+				mapWidth = 25;
+				mapHeight = 25;
+				map = new int[getMapWidth()][getMapHeight()];
 				potentialNewFile = fileChooser.getSelectedFile();
 				if(!potentialNewFile.exists()) {
 					JOptionPane.showMessageDialog(this, "The file\"" + potentialNewFile + "\" could not be found.", "Open File", JOptionPane.ERROR_MESSAGE);
@@ -136,9 +135,54 @@ public class DrawPanel extends JPanel implements ActionListener {
 					repaint();
 				}
 			}
-		} else if(command.equals("CALCFIT")) {
-			
 		}
 	}
+
+	public boolean mapReady() {
+		boolean ret = false;
+		if(map != null) {
+			if(spawnX != -1 && spawnY != -1) {
+				ret = true;
+			}
+		}
+		return ret;
+	}
+
+	public int getSpawnX() {
+		return spawnX;
+	}
+	public int getSpawnY() {
+		return spawnY;
+	}
+	public int[][] getMap() {
+		return map;
+	}
+
+	public int getMapWidth() {
+		return mapWidth;
+	}
+	
+	public int getMapHeight() {
+		return mapHeight;
+	}
+
+	public void updateStats(GeneticAlgorithm gen, int popSize, int genNum, int ticks, int numTicks) {
+		
+		statMap.put("Population Size: ", Integer.toString(popSize));
+		statMap.put("Generation Number: ", Integer.toString(genNum));
+		statMap.put("Lifetime: ", ticks + "/" + numTicks);
+		statMap.put("Average Fitness: ", Double.toString(gen.getAverageFitness()));
+		statMap.put("Best Fitness: ", Integer.toString(gen.getBestFitness()));
+		statMap.put("Worst Fitness: ", Integer.toString(gen.getWorstFitness()));
+		statMap.put("Total Fitness: ", Integer.toString(gen.getTotalFitness()));
+
+		
+		repaint();
+	}
+
+	public void clearStats() {
+		statMap.clear();
+	}
+
 	
 }

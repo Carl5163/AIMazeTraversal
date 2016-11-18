@@ -16,7 +16,6 @@ public class Pathfinder {
 	public Pathfinder(int[][] intMap, int w, int h) {
 
 		map = new Cell[w][h];
-		//System.out.printf("Map array created with dimensions: %dx%d.\n", w, h);
 		mapWidth = w;
 		mapHeight = h;
 		init(intMap);

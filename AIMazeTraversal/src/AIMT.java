@@ -1,53 +1,34 @@
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Properties;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.util.*;
 
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 import javax.swing.Timer;
 
-public class AIMT extends JFrame implements KeyListener, ActionListener {
+@SuppressWarnings("serial")
+public class AIMT extends JFrame implements ActionListener {
 	
-	public int numTicks = 500;
-	public int tickLength = 1;
 	
-	DrawPanel drawPanel;
-	ArrayList<Bee> pop;
-	ArrayList<Genome> genomePop;
-	int ticks = 0;
-	GeneticAlgorithm gen;
-	Timer timer;
+	private DrawPanel drawPanel;
+	private ArrayList<Bee> pop;
+	private ArrayList<Genome> genomePop;
+	private int ticks = 0;
+	private GeneticAlgorithm gen;
+	private Timer timer;
 	private int genNum;
-	private Properties prefs;
-	private int popSize;
+	private SimPrefs prefs;
+	JMenuItem miStart;
+	JMenuItem miStop;
+	JMenuItem miPause;
 	
 	public static void main(String[] args) {
 		new AIMT();
 	}
 	
 	public AIMT() {
-		prefs = new Properties();
-		try {
-			prefs.load(new FileInputStream("config.ini"));
-			numTicks = Integer.parseInt(prefs.getProperty("NumTicks"));
-			popSize = Integer.parseInt(prefs.getProperty("PopSize"));
-			tickLength = Integer.parseInt(prefs.getProperty("TickLength"));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		
+		prefs = new SimPrefs();
 		
 		try {
 			drawPanel = new DrawPanel();
@@ -61,7 +42,6 @@ public class AIMT extends JFrame implements KeyListener, ActionListener {
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		getContentPane().add(drawPanel, BorderLayout.CENTER);
 		setJMenuBar(makeMenuBar());
-		addKeyListener(this);
 		setVisible(true);
 		
 	}
@@ -93,15 +73,40 @@ public class AIMT extends JFrame implements KeyListener, ActionListener {
 
 		menuBar.add(menu);
 		
-		menu = new JMenu("Edit");	
-		menu.setMnemonic(KeyEvent.VK_E);
+		menu = new JMenu("Simulation");	
+		menu.setMnemonic(KeyEvent.VK_I);
 			
 		menuItem = new JMenuItem("Preferences");
 		menuItem.setActionCommand("PREFS");
-		menuItem.setMnemonic(KeyEvent.VK_P);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_DOWN_MASK));
+		menuItem.setMnemonic(KeyEvent.VK_E);
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK));
 		menuItem.addActionListener(this);
 		menu.add(menuItem);
+		
+		
+		miStart = new JMenuItem("Start");
+		miStart.setActionCommand("START");
+		miStart.setMnemonic(KeyEvent.VK_S);
+		miStart.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
+		miStart.addActionListener(this);
+		menu.add(miStart);
+		
+		miPause = new JMenuItem("Pause");
+		miPause.setActionCommand("PAUSE");
+		miPause.setMnemonic(KeyEvent.VK_P);
+		miPause.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_DOWN_MASK));
+		miPause.addActionListener(this);
+		miPause.setEnabled(false);
+		menu.add(miPause);
+		
+		miStop = new JMenuItem("Stop");
+		miStop.setActionCommand("STOP");
+		miStop.setMnemonic(KeyEvent.VK_T);
+		miStop.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.CTRL_DOWN_MASK));
+		miStop.addActionListener(this);
+		miStop.setEnabled(false);
+		menu.add(miStop);
+		
 
 		menuBar.add(menu);
 				
@@ -109,80 +114,81 @@ public class AIMT extends JFrame implements KeyListener, ActionListener {
 	}
 
 	@Override
-	public void keyPressed(KeyEvent e) {
-		/*if(e.getKeyCode() == KeyEvent.VK_LEFT) {
-			drawPanel.update(Bee.LEFT);
-		} else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
-			drawPanel.update(Bee.RIGHT);
-		} else if(e.getKeyCode() == KeyEvent.VK_UP) {
-			drawPanel.update(Bee.UP);
-		} else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
-			drawPanel.update(Bee.DOWN);
-		}*/
-		
-		if(e.getKeyCode() == KeyEvent.VK_ENTER) {
-			pop = new ArrayList<Bee>();
-			for(int i = 0; i < popSize; i++) {
-				try {
-					pop.add(new Bee(drawPanel.spawnX, drawPanel.spawnY, drawPanel.map, drawPanel.mapWidth, drawPanel.mapHeight));
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
-			gen = new GeneticAlgorithm(pop.get(0).brain.getNumberOfWeights(), popSize);
-			genomePop = gen.population;
-
-			for(int i = 0; i < gen.popSize; i++) {
-				pop.get(i).brain.putWeights(genomePop.get(i).weights);
-			}
-
-			timer = new Timer(tickLength, this);
-			timer.setActionCommand("timer");
-			timer.start();
-			genNum = 0;
-			
-		}
-		
-		
-	}
-
-	@Override
-	public void keyReleased(KeyEvent e) {}
-
-	@Override
-	public void keyTyped(KeyEvent e) {}
-
-	@Override
 	public void actionPerformed(ActionEvent e) {
 		if(e.getActionCommand().equals("EXIT")) {
 			System.exit(0);
 		} else if(e.getActionCommand().equals("timer")) {
-			if(ticks < numTicks) {
+			if(ticks < prefs.numTicks) {
 				updateBees();
 				drawPanel.update(pop);
 				repaint();
 				ticks++;
-				if(ticks % 100 == 0)
-					System.out.println("Tick: " + ticks + "/" + numTicks);
 			} else {
 				timer.stop();	
 				genomePop = gen.epoch(genomePop);
-				System.out.println("Generation: " + genNum);
 				genNum++;
 				restart();				
 			}
+			drawPanel.updateStats(gen, prefs.popSize, genNum, ticks, prefs.numTicks);
+			
 		} else if(e.getActionCommand().equals("PREFS")) {
-			PrefsDialog d = new PrefsDialog();
+			PrefsDialog d = new PrefsDialog(prefs, this);
 			d.setLocationRelativeTo(this);
+		} else if(e.getActionCommand().equals("PAUSE")) {
+			if(timer != null) {
+				pause();
+				miPause.setText("Resume");
+				miPause.setActionCommand("RESUME");
+			}
+		} else if(e.getActionCommand().equals("RESUME")) {
+			if(timer != null) {
+				resume();
+				miPause.setText("Pause");
+				miPause.setActionCommand("PAUSE");
+			}
+		} else if(e.getActionCommand().equals("STOP")) {
+			stop();
+			miStart.setEnabled(true);
+		} else if(e.getActionCommand().equals("START")) {
+			start();
+			miStop.setEnabled(true);
+			miPause.setEnabled(true);
 		}
 	}
+	private void start() {
+
+		if(drawPanel.mapReady()) {
+		
+			pop = new ArrayList<Bee>();
+			for(int i = 0; i < prefs.popSize; i++) {
+				try {
+					pop.add(new Bee(prefs, drawPanel.getSpawnX(), drawPanel.getSpawnY(), drawPanel.getMap(), drawPanel.getMapWidth(), drawPanel.getMapHeight()));
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+			gen = new GeneticAlgorithm(prefs, pop.get(0).getNumberOfWeights());
+			genomePop = gen.getPopulation();
+	
+			for(int i = 0; i < prefs.popSize; i++) {
+				pop.get(i).putWeights(genomePop.get(i).getWeights());
+			}
+	
+			timer = new Timer(prefs.tickLength, this);
+			timer.setActionCommand("timer");
+			timer.start();
+			genNum = 0;
+		}
+		
+	}
+
 	private void updateBees() {
 		for(int bi = 0; bi < pop.size(); bi++) {
 			ArrayList<Boolean> inputs = new ArrayList<Boolean>();
 			for(int i = pop.get(bi).getX()-1; i <= pop.get(bi).getX()+1; i++) {
 				for(int j = pop.get(bi).getY()-1; j <= pop.get(bi).getY()+1; j++) {
 					if(!(i==pop.get(bi).getX() && j == pop.get(bi).getY())) {
-						inputs.add(drawPanel.map[i][j] == DrawPanel.ENTRANCE);
+						inputs.add(drawPanel.getMap()[i][j] == DrawPanel.ENTRANCE);
 					}
 				}
 			}
@@ -190,13 +196,30 @@ public class AIMT extends JFrame implements KeyListener, ActionListener {
 		}
 	}
 	public void restart() {
-		for(int i = 0; i < popSize; i++) {
-			pop.get(i).brain.putWeights(genomePop.get(i).weights);
-			pop.get(i).setPosition(drawPanel.spawnX, drawPanel.spawnY);
+		for(int i = 0; i < prefs.popSize; i++) {
+			pop.get(i).putWeights(genomePop.get(i).getWeights());
+			pop.get(i).setPosition(drawPanel.getSpawnX(), drawPanel.getSpawnY());
 		}
 		ticks = 0;
-		timer = new Timer(tickLength, this);
+		timer = new Timer(prefs.tickLength, this);
 		timer.setActionCommand("timer");
 		timer.start();
 	}
+	
+	public void stop() {
+		if(timer != null) {
+			timer.stop();
+		}
+		if(pop != null) {
+			pop.clear();
+		}
+		drawPanel.clearStats();
+	}
+	public void pause() {
+		timer.stop();
+	}
+	public void resume() {
+		timer.start();
+	}
+	
 }

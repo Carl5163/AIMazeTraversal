@@ -5,8 +5,9 @@
 /GeneticAlgorithm.class
 /Genome.class
 /Layer.class
-/NeuralNet.class
+/MyInputVerifier.class
+/NeuralNetwork.class
 /Neuron.class
 /Pathfinder.class
 /PrefsDialog.class
-/asd.class
+/SimPrefs.class

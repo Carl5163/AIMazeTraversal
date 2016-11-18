@@ -4,48 +4,29 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
 
-public class NeuralNet {
-	
-	public static final int NUM_INPUTS = 8;
-	public static final double ACTIVATION_RESPONSE = 0;
-		
+public class NeuralNetwork {
+			
 	private ArrayList<Layer> layers;
-	private Properties prefs; 
 	
 	private int numInputs = 8;
 	private int numOutputs = 4;
-	private int numHiddenLayers = 1;
-	private int neuronsPerHiddenLayer = 4;
-	double activationResponse = 1;
-	double bias = -1;
+	private double bias = -1;
+	private SimPrefs prefs;
 	
 	
-	public NeuralNet() {
-		prefs = new Properties();
-		try {
-			prefs.load(new FileInputStream("config.ini"));
-			numInputs = Integer.parseInt(prefs.getProperty("NumInputs"));
-			numHiddenLayers = Integer.parseInt(prefs.getProperty("NumHidden"));
-			neuronsPerHiddenLayer = Integer.parseInt(prefs.getProperty("NeuronsPerHiddenLayer"));
-			numOutputs = Integer.parseInt(prefs.getProperty("NumOutputs"));
-			activationResponse = Double.parseDouble(prefs.getProperty("ActivationResponse"));
-			bias = Double.parseDouble(prefs.getProperty("Bias"));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public NeuralNetwork(SimPrefs prefs) {
+		this.prefs = prefs;
 		createNet();
 	}
 	
 	public void createNet() {
 		
 		layers = new ArrayList<Layer>();
-		layers.add(new Layer(neuronsPerHiddenLayer, numInputs));
-		for(int i = 0; i < numHiddenLayers-1; i++) {
-			layers.add(new Layer(neuronsPerHiddenLayer, neuronsPerHiddenLayer));
+		layers.add(new Layer(prefs.neuronsPerHiddenLayer, getNumInputs()));
+		for(int i = 0; i < prefs.numHiddenLayers-1; i++) {
+			layers.add(new Layer(prefs.neuronsPerHiddenLayer, prefs.neuronsPerHiddenLayer));
 		}
-		layers.add(new Layer(numOutputs, neuronsPerHiddenLayer));
+		layers.add(new Layer(numOutputs, prefs.neuronsPerHiddenLayer));
 		
 	}
 	
@@ -57,7 +38,7 @@ public class NeuralNet {
 		
 		ret = new ArrayList<Double>();
 				
-		for(int i = 0; i < numHiddenLayers+1; i++) {
+		for(int i = 0; i < prefs.numHiddenLayers+1; i++) {
 			curLayer = layers.get(i);
 			for(int j = 0; j < curLayer.getNumNeurons(); j++) {
 				curNeuron = curLayer.getNeuron(j);
@@ -77,7 +58,7 @@ public class NeuralNet {
 		Layer curLayer;
 		Neuron curNeuron;
 		
-		for(int i = 0; i < numHiddenLayers+1; i++) {
+		for(int i = 0; i < prefs.numHiddenLayers+1; i++) {
 			curLayer = layers.get(i);
 			for(int j = 0; j < curLayer.getNumNeurons(); j++) {
 				curNeuron = curLayer.getNeuron(j);
@@ -97,12 +78,13 @@ public class NeuralNet {
 		Neuron curNeuron;
 		int weightIndex = 0;
 				
-		for(int i = 0; i < numHiddenLayers+1; i++) {
+		for(int i = 0; i < prefs.numHiddenLayers+1; i++) {
 			curLayer = layers.get(i);
 			for(int j = 0; j < curLayer.getNumNeurons(); j++) {
 				curNeuron = curLayer.getNeuron(j);
 				for(int k = 0; k < curNeuron.getNumInputs(); k++) {
-					curNeuron.setWeight(k, newWeights.get(weightIndex));
+					curNeuron.setWeight(k, 
+							newWeights.get(weightIndex));
 					weightIndex++;
 				}
 			}
@@ -118,7 +100,7 @@ public class NeuralNet {
 		
 		outputs = new ArrayList<Double>();
 		
-		for(int i = 0; i < numHiddenLayers+1; i++) {
+		for(int i = 0; i < prefs.numHiddenLayers+1; i++) {
 			
 			curLayer = layers.get(i);
 			// If we have just finished a layer, then the outputs of the previous layer become the inputs for the new layer.
@@ -141,7 +123,7 @@ public class NeuralNet {
 				}
 				
 				sigInput += curNeuron.getWeight(numIn-1) * bias;
-				outputs.add(sigmoid(sigInput, activationResponse));
+				outputs.add(sigmoid(sigInput, prefs.activationResponse));
 				weightIndex = 0;
 				
 			}
@@ -156,6 +138,11 @@ public class NeuralNet {
 	public double sigmoid(double input, double ar) {
 		return (1 /(1 + Math.exp(-input/ar)));
 	}
+
+	public int getNumInputs() {
+		return numInputs;
+	}
+
 	
 
 }

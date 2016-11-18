@@ -14,19 +14,18 @@ public class Bee {
 	public static final int RIGHT = 1;
 	public static final int DOWN = 2;
 	public static final int LEFT = 3;	
-	//Fitness = startDist-curDist
 	
 	private Image sprite[];
 	private int x, y;
 	private int direction;
 	private Pathfinder p;
-	private int endX, endY;
 	private int[][] map;
 	private int startDist;
 	private int fitness;
-	NeuralNet brain;
+	private NeuralNetwork brain;
+	private SimPrefs prefs;
 	
-	public Bee(int x, int y, int[][] map, int w, int h) throws IOException {
+	public Bee(SimPrefs prefs, int x, int y, int[][] map, int w, int h) throws IOException {
 		this.x = x;
 		this.y = y;
 		this.map = map;
@@ -43,7 +42,7 @@ public class Bee {
 
 		p = new Pathfinder(map, w, h);
 		startDist = findDistanceToGoal();
-		brain = new NeuralNet();
+		brain = new NeuralNetwork(prefs);
 		
 	}
 	
@@ -70,8 +69,7 @@ public class Bee {
 		}
 		
 		move(map, highest);
-		mygenome.fitness = findFitness();
-		
+		mygenome.setFitness(findFitness());		
 		
 	}
 
@@ -113,7 +111,10 @@ public class Bee {
 			break;
 		}
 	}
-
+	
+	public void putWeights(ArrayList<Double> weights) {
+		brain.putWeights(weights);
+	}
 	
 	public int getX() {
 		return x;
@@ -125,5 +126,9 @@ public class Bee {
 	public void setPosition(int newX, int newY) {
 		x = newX;
 		y = newY;
+	}
+
+	public int getNumberOfWeights() {
+		return brain.getNumberOfWeights();
 	}
 }
