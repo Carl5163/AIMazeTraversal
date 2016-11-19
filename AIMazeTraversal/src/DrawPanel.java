@@ -32,6 +32,7 @@ public class DrawPanel extends JPanel implements ActionListener {
 	public DrawPanel() throws IOException {
 		fileChooser = new JFileChooser("..\\MazeEditor\\Maps");
 		fileChooser.setFileFilter(new FileNameExtensionFilter("Map files (.map)", "map"));
+		fileChooser.setSelectedFile(new File("map3.map"));
 		statMap = new HashMap<String, String>();
 	}
 	
