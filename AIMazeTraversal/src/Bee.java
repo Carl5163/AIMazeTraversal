@@ -1,6 +1,7 @@
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -17,15 +18,17 @@ public class Bee {
 	
 	private Image sprite[];
 	private int x, y;
+	private int oldX, oldY;
 	private int direction;
 	private Pathfinder p;
 	private int[][] map;
 	private int startDist;
 	private int fitness;
 	private NeuralNetwork brain;
-	private SimPrefs prefs;
+	private int numTimesInSameSpot = 0;
 	
 	public Bee(SimPrefs prefs, int x, int y, int[][] map, int w, int h) throws IOException {
+		
 		this.x = x;
 		this.y = y;
 		this.map = map;
@@ -50,18 +53,15 @@ public class Bee {
 		
 		ArrayList<Double> in = new ArrayList<Double>();
 		
-		for(int i = 0; i < inputs.size(); i++) 
-		{
+		for(int i = 0; i < inputs.size(); i++) {
 			in.add(inputs.get(i) ? 1.0 : -1.0);
 		}
 		ArrayList<Double> output = brain.update(in);
 		
 		double high = output.get(0);
-		//System.out.println("Outputs: \n" + high);
 		
 		int highest = 0;
 		for(int i = 1; i < 4; i++) {
-			//System.out.println(output.get(i));
 			if(output.get(i) > high) {
 				high = output.get(i);
 				highest = i;
@@ -70,12 +70,20 @@ public class Bee {
 		
 		move(map, highest);
 		mygenome.setFitness(findFitness());		
+		oldX = x;
+		oldY = y;
 		
 	}
 
 	
 	public int findFitness() {
 		fitness = Math.max(0, startDist-p.getPathLength(x, y));
+		if(map[x][y] == DrawPanel.EXIT)  {
+			fitness += 10;
+		} else if(x == oldX || y == oldY) {
+			numTimesInSameSpot++;
+			fitness -= numTimesInSameSpot;
+		}
 		return fitness;
 	}
 	
@@ -83,7 +91,6 @@ public class Bee {
 		return p.getPathLength(x, y);
 	}
 	
-	//146
 	public void draw(Graphics g2) {
 		Graphics2D g = (Graphics2D)g2;
 		g.drawImage(sprite[direction], x*32, y*32, null);

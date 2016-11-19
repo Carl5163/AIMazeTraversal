@@ -15,7 +15,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
-public class MazeEditor extends JFrame implements ActionListener{
+public class MazeEditor extends JFrame implements ActionListener {
 	
 	private DrawPane drawPane;
 	private int[][] map;
