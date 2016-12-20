@@ -1,21 +1,18 @@
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Properties;
 
 public class NeuralNetwork {
 			
 	private ArrayList<Layer> layers;
 	
-	private int numInputs = 8;
+	private int numInputs = 121;
 	private int numOutputs = 4;
 	private double bias = -1;
 	private SimPrefs prefs;
 	
 	
-	public NeuralNetwork(SimPrefs prefs) {
+	public NeuralNetwork(SimPrefs prefs, int numInputs) {
 		this.prefs = prefs;
+		this.numInputs = numInputs;
 		createNet();
 	}
 	
@@ -118,7 +115,8 @@ public class NeuralNetwork {
 				int numIn = curNeuron.getNumInputs();
 								
 				for(int k = 0; k < numIn-1; k++) {
-					sigInput += curNeuron.getWeight(k) * inputs.get(weightIndex);
+					sigInput += curNeuron.getWeight(k) * 
+							inputs.get(weightIndex);
 					weightIndex++;
 				}
 				

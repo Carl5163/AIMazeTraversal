@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 public class Genome {
 	private ArrayList<Double> weights;
-	private int fitness = 0;
+	private int fitness;
 	
 	public Genome() {
 		fitness = 0;
