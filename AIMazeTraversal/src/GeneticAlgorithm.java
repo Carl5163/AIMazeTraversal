@@ -121,8 +121,6 @@ public class GeneticAlgorithm {
 			ArrayList<Double> child1 = new ArrayList<Double>();
 			ArrayList<Double> child2 = new ArrayList<Double>();
 
-			System.out.println("mumweights: " + mum.getWeights().size());
-			System.out.println("dadweights: " + dad.getWeights().size());
 			crossover(mum.getWeights(), dad.getWeights(), child1, child2);
 			mutate(child1);
 			mutate(child2);
@@ -152,7 +150,7 @@ public class GeneticAlgorithm {
 			if(fitnessCounter >= slice)	{
 				return population.get(i);				
 			}
-		}
+		}		
 		return ret;
 	}
 
