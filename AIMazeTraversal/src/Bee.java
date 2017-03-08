@@ -46,7 +46,7 @@ public class Bee {
 
 		p = new Pathfinder(map, w, h);
 		distanceToGoal = findDistanceToGoal();
-		brain = new NeuralNetwork(prefs, h);
+		brain = new NeuralNetwork(prefs);
 		fitness = 100;
 		
 	}

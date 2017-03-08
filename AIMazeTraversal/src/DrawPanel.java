@@ -28,10 +28,6 @@ public class DrawPanel extends JPanel implements ActionListener {
 	private int spawnX = -1;
 	private int spawnY = -1;
 	private Map<String, String> statMap;
-	private boolean drawBees;
-	private Bee movableBee;
-	private int endX;
-	private int endY;
 	
 	public DrawPanel() throws IOException {
 		fileChooser = new JFileChooser("..\\MazeEditor\\Maps");
@@ -62,16 +58,11 @@ public class DrawPanel extends JPanel implements ActionListener {
 		
 		g.setColor(oldColor);
 		
-		if(bees != null && drawBees) {
+		if(bees != null) {
 			for(Bee b : bees) {
 				b.draw(g);
 			}
 		}
-		
-		if(movableBee != null) {
-			movableBee.draw(g);
-		}
-		
 		int i = 0; 
 		for(String s : statMap.keySet()) {
 			g.drawString(s + statMap.get(s), 810, 20 + 20*i);
@@ -85,7 +76,6 @@ public class DrawPanel extends JPanel implements ActionListener {
 		long encryptedMagicNumber;
 		long magicNumber;
 		int dx = 0,dy = 0;
-		int ex = 0,ey = 0;
 		try {
 			DataInputStream dis = new DataInputStream(new FileInputStream(f));
 			encryptedMagicNumber = dis.readLong();
@@ -98,10 +88,6 @@ public class DrawPanel extends JPanel implements ActionListener {
 							dx = i;
 							dy = j;								
 						}
-						if(getMap()[i][j] == EXIT) {
-							ex = i;
-							ey = j;								
-						}
 					}
 				}
 				file = f;
@@ -110,8 +96,6 @@ public class DrawPanel extends JPanel implements ActionListener {
 				
 				spawnX = dx;
 				spawnY = dy;
-				endX = ex;
-				endY = ey;
 				
 			
 			} else {
@@ -130,13 +114,10 @@ public class DrawPanel extends JPanel implements ActionListener {
 		g.drawRect(x, y, 32, 32);
 	}
 	
-	public void update(ArrayList<Bee> bees, boolean drawBees, Bee movableBee) {
+	public void update(ArrayList<Bee> bees) {
 		this.bees = bees;
-		this.drawBees = drawBees;
-		this.movableBee = movableBee;
 		repaint();
 	}
-	
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
@@ -173,12 +154,6 @@ public class DrawPanel extends JPanel implements ActionListener {
 	}
 	public int getSpawnY() {
 		return spawnY;
-	}
-	public int getEndX() {
-		return endX;
-	}
-	public int getEndY() {
-		return endY;
 	}
 	public int[][] getMap() {
 		return map;

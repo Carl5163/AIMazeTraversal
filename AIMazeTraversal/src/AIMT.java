@@ -7,7 +7,7 @@ import javax.swing.*;
 import javax.swing.Timer;
 
 @SuppressWarnings("serial")
-public class AIMT extends JFrame implements ActionListener, KeyListener {
+public class AIMT extends JFrame implements ActionListener {
 	
 	
 	private DrawPanel drawPanel;
@@ -15,14 +15,12 @@ public class AIMT extends JFrame implements ActionListener, KeyListener {
 	private ArrayList<Genome> genomePop;
 	private int ticks = 0;
 	private GeneticAlgorithm gen;
-	private Timer mainTimer;
+	private Timer timer;
 	private int genNum;
 	private SimPrefs prefs;
 	JMenuItem miStart;
 	JMenuItem miStop;
 	JMenuItem miPause;
-	private JCheckBoxMenuItem miDraw;
-	private Bee movableBee;
 	
 	public static void main(String[] args) {
 		new AIMT();
@@ -45,7 +43,6 @@ public class AIMT extends JFrame implements ActionListener, KeyListener {
 		getContentPane().add(drawPanel, BorderLayout.CENTER);
 		setJMenuBar(makeMenuBar());
 		setVisible(true);
-		addKeyListener(this);
 		
 	}
 	
@@ -110,10 +107,6 @@ public class AIMT extends JFrame implements ActionListener, KeyListener {
 		miStop.setEnabled(false);
 		menu.add(miStop);
 		
-		miDraw = new JCheckBoxMenuItem("Draw Bees");
-		miDraw.setSelected(true);
-		menu.add(miDraw);
-		
 
 		menuBar.add(menu);
 				
@@ -127,14 +120,14 @@ public class AIMT extends JFrame implements ActionListener, KeyListener {
 		} else if(e.getActionCommand().equals("timer")) {
 			if(ticks < prefs.numTicks) {
 				updateBees();
-				drawPanel.update(pop, miDraw.isSelected(), movableBee);
+				drawPanel.update(pop);
 				repaint();
 				ticks++;
 			} else {
-				mainTimer.stop();	
+				timer.stop();	
 				genomePop = gen.epoch(genomePop);
 				genNum++;
-				restart();
+				restart();				
 			}
 			drawPanel.updateStats(gen, prefs.popSize, genNum, ticks, prefs.numTicks);
 			
@@ -142,13 +135,13 @@ public class AIMT extends JFrame implements ActionListener, KeyListener {
 			PrefsDialog d = new PrefsDialog(prefs, this);
 			d.setLocationRelativeTo(this);
 		} else if(e.getActionCommand().equals("PAUSE")) {
-			if(mainTimer != null) {
+			if(timer != null) {
 				pause();
 				miPause.setText("Resume");
 				miPause.setActionCommand("RESUME");
 			}
 		} else if(e.getActionCommand().equals("RESUME")) {
-			if(mainTimer != null) {
+			if(timer != null) {
 				resume();
 				miPause.setText("Pause");
 				miPause.setActionCommand("PAUSE");
@@ -169,7 +162,7 @@ public class AIMT extends JFrame implements ActionListener, KeyListener {
 			pop = new ArrayList<Bee>();
 			for(int i = 0; i < prefs.popSize; i++) {
 				try {
-					pop.add(new Bee(prefs, drawPanel.getSpawnX(), drawPanel.getSpawnY(), drawPanel.getMap(), drawPanel.getMapWidth(), drawPanel.getMapHeight(), drawPanel.getEndX(), drawPanel.getEndY()));
+					pop.add(new Bee(prefs, drawPanel.getSpawnX(), drawPanel.getSpawnY(), drawPanel.getMap(), drawPanel.getMapWidth(), drawPanel.getMapHeight()));
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
@@ -181,9 +174,9 @@ public class AIMT extends JFrame implements ActionListener, KeyListener {
 				pop.get(i).putWeights(genomePop.get(i).getWeights());
 			}
 	
-			mainTimer = new Timer(prefs.tickLength, this);
-			mainTimer.setActionCommand("timer");
-			mainTimer.start();
+			timer = new Timer(prefs.tickLength, this);
+			timer.setActionCommand("timer");
+			timer.start();
 			genNum = 0;
 		}
 		
@@ -191,24 +184,31 @@ public class AIMT extends JFrame implements ActionListener, KeyListener {
 
 	private void updateBees() {
 		for(int bi = 0; bi < pop.size(); bi++) {
-			pop.get(bi).update(pop.get(bi).getInputs(), genomePop.get(bi));
+			ArrayList<Boolean> inputs = new ArrayList<Boolean>();
+			for(int i = pop.get(bi).getX()-1; i <= pop.get(bi).getX()+1; i++) {
+				for(int j = pop.get(bi).getY()-1; j <= pop.get(bi).getY()+1; j++) {
+					if(!(i==pop.get(bi).getX() && j == pop.get(bi).getY())) {
+						inputs.add(drawPanel.getMap()[i][j] == DrawPanel.ENTRANCE);
+					}
+				}
+			}
+			pop.get(bi).update(inputs, genomePop.get(bi));
 		}
 	}
 	public void restart() {
 		for(int i = 0; i < prefs.popSize; i++) {
 			pop.get(i).putWeights(genomePop.get(i).getWeights());
 			pop.get(i).setPosition(drawPanel.getSpawnX(), drawPanel.getSpawnY());
-			pop.get(i).resetPenalties();
 		}
 		ticks = 0;
-		mainTimer = new Timer(prefs.tickLength, this);
-		mainTimer.setActionCommand("timer");
-		mainTimer.start();
+		timer = new Timer(prefs.tickLength, this);
+		timer.setActionCommand("timer");
+		timer.start();
 	}
 	
 	public void stop() {
-		if(mainTimer != null) {
-			mainTimer.stop();
+		if(timer != null) {
+			timer.stop();
 		}
 		if(pop != null) {
 			pop.clear();
@@ -216,48 +216,10 @@ public class AIMT extends JFrame implements ActionListener, KeyListener {
 		drawPanel.clearStats();
 	}
 	public void pause() {
-		mainTimer.stop();
+		timer.stop();
 	}
 	public void resume() {
-		mainTimer.start();
-	}
-
-	@Override
-	public void keyTyped(KeyEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void keyPressed(KeyEvent e) {
-		if(e.getKeyCode() == KeyEvent.VK_B && e.isControlDown()) {
-			try {
-				if(movableBee == null) {
-					if(drawPanel.mapReady()) {
-						System.out.println("Made test bee");
-						movableBee = new Bee(prefs, drawPanel.getSpawnX(), drawPanel.getSpawnY(), drawPanel.getMap(), drawPanel.getMapWidth(), drawPanel.getMapHeight(), drawPanel.getEndX(), drawPanel.getEndY());
-						drawPanel.update(null, false, movableBee);
-						repaint();
-					}
-				} else {
-					movableBee = null;
-				}
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-		} else {
-			if(movableBee != null && e.getKeyCode() <= 40 && e.getKeyCode() >= 37) {
-				movableBee.move(drawPanel.getMap(), e.getKeyCode()-37);
-				drawPanel.update(null, false, movableBee);
-			}
-		}
-		
-	}
-
-	@Override
-	public void keyReleased(KeyEvent e) {
-		// TODO Auto-generated method stub
-		
+		timer.start();
 	}
 	
 }
