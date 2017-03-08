@@ -18,14 +18,15 @@ public class Bee {
 	
 	private Image sprite[];
 	private int x, y;
-	private int oldX, oldY;
 	private int direction;
 	private Pathfinder p;
 	private int[][] map;
-	private int startDist;
 	private int fitness;
 	private NeuralNetwork brain;
-	private int numTimesInSameSpot = 0;
+	int distanceToGoal;
+	int distanceOld;
+	boolean update = true;
+	
 	
 	public Bee(SimPrefs prefs, int x, int y, int[][] map, int w, int h) throws IOException {
 		
@@ -44,46 +45,52 @@ public class Bee {
 		
 
 		p = new Pathfinder(map, w, h);
-		startDist = findDistanceToGoal();
+		distanceToGoal = findDistanceToGoal();
 		brain = new NeuralNetwork(prefs);
+		fitness = 100;
 		
 	}
 	
 	void update(ArrayList<Boolean> inputs, Genome mygenome) {
 		
-		ArrayList<Double> in = new ArrayList<Double>();
-		
-		for(int i = 0; i < inputs.size(); i++) {
-			in.add(inputs.get(i) ? 1.0 : -1.0);
-		}
-		ArrayList<Double> output = brain.update(in);
-		
-		double high = output.get(0);
-		
-		int highest = 0;
-		for(int i = 1; i < 4; i++) {
-			if(output.get(i) > high) {
-				high = output.get(i);
-				highest = i;
+		if(update) {
+			ArrayList<Double> in = new ArrayList<Double>();
+			
+			for(int i = 0; i < inputs.size(); i++) {
+				in.add(inputs.get(i) ? 1.0 : -1.0);
 			}
+			ArrayList<Double> output = brain.update(in);
+			
+			double high = output.get(0);
+			
+			int highest = 0;
+			for(int i = 1; i < 4; i++) {
+				if(output.get(i) > high) {
+					high = output.get(i);
+					highest = i;
+				}
+			}
+			
+			move(map, highest);
+			mygenome.setFitness(findFitness());
 		}
-		
-		move(map, highest);
-		mygenome.setFitness(findFitness());		
-		oldX = x;
-		oldY = y;
 		
 	}
 
 	
 	public int findFitness() {
-		fitness = Math.max(0, startDist-p.getPathLength(x, y));
-		if(map[x][y] == DrawPanel.EXIT)  {
+		distanceOld = distanceToGoal;		
+		distanceToGoal = findDistanceToGoal();
+		if(distanceToGoal > distanceOld) {
+			fitness -= 10;
+		} else if(distanceToGoal < distanceOld){
 			fitness += 10;
-		} else if(x == oldX || y == oldY) {
-			numTimesInSameSpot++;
-			fitness -= numTimesInSameSpot;
 		}
+		if(distanceToGoal == 0) {
+			fitness+=50;
+			update = false;
+		}
+		fitness--;
 		return fitness;
 	}
 	
@@ -116,7 +123,7 @@ public class Bee {
 			if(map[x][y+1] != DrawPanel.WALL)
 				y++;
 			break;
-		}
+		}		
 	}
 	
 	public void putWeights(ArrayList<Double> weights) {
