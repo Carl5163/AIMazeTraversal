@@ -25,11 +25,9 @@ public class DrawPanel extends JPanel implements ActionListener {
 	private int mapWidth;
 	private int mapHeight;
 	private JFileChooser fileChooser;
-	private int spawn1X = -1;
-	private int spawn1Y = -1;
+	private int spawnX = -1;
+	private int spawnY = -1;
 	private Map<String, String> statMap;
-	private int spawn2X;
-	private int spawn2Y;
 	
 	public DrawPanel() throws IOException {
 		fileChooser = new JFileChooser("..\\MazeEditor\\Maps");
@@ -77,25 +75,18 @@ public class DrawPanel extends JPanel implements ActionListener {
 	private void openMap(File f) {
 		long encryptedMagicNumber;
 		long magicNumber;
-		int d1x = 0,d1y = 0,d2x = 0,d2y = 0;
+		int dx = 0,dy = 0;
 		try {
 			DataInputStream dis = new DataInputStream(new FileInputStream(f));
 			encryptedMagicNumber = dis.readLong();
 			magicNumber = encryptedMagicNumber ^ MAGIC_NUMBER_XOR;
-			int spawnNum = 0;
 			if(magicNumber == MAGIC_NUMBER) {
 				for(int i = 0; i < getMapWidth(); i++) {
 					for(int j = 0; j < getMapHeight(); j++) {
-						map[i][j] = dis.readByte();
+						getMap()[i][j] = dis.readByte();
 						if(getMap()[i][j] == ENTRANCE) {
-							if(spawnNum == 0) {
-								d1x = i;
-								d1y = j;
-								spawnNum++;
-							} else if(spawnNum==1) {
-								d2x = i;
-								d2y = j;
-							}
+							dx = i;
+							dy = j;								
 						}
 					}
 				}
@@ -103,10 +94,8 @@ public class DrawPanel extends JPanel implements ActionListener {
 				repaint();
 				dis.close();
 				
-				spawn1X = d1x;
-				spawn1Y = d1y;
-				spawn2X = d2x;
-				spawn2Y = d2y;
+				spawnX = dx;
+				spawnY = dy;
 				
 			
 			} else {
@@ -153,7 +142,7 @@ public class DrawPanel extends JPanel implements ActionListener {
 	public boolean mapReady() {
 		boolean ret = false;
 		if(map != null) {
-			if(spawn1X != -1 && spawn1Y != -1) {
+			if(spawnX != -1 && spawnY != -1) {
 				ret = true;
 			}
 		}
@@ -161,10 +150,10 @@ public class DrawPanel extends JPanel implements ActionListener {
 	}
 
 	public int getSpawnX() {
-		return spawn1X;
+		return spawnX;
 	}
 	public int getSpawnY() {
-		return spawn1Y;
+		return spawnY;
 	}
 	public int[][] getMap() {
 		return map;
@@ -178,7 +167,7 @@ public class DrawPanel extends JPanel implements ActionListener {
 		return mapHeight;
 	}
 
-	public void updateStats(GeneticAlgorithm gen, int numCompleted, int popSize, int genNum, int ticks, int numTicks) {
+	public void updateStats(GeneticAlgorithm gen, int popSize, int genNum, int ticks, int numTicks) {
 		
 		statMap.put("Population Size: ", Integer.toString(popSize));
 		statMap.put("Generation Number: ", Integer.toString(genNum));
@@ -187,7 +176,6 @@ public class DrawPanel extends JPanel implements ActionListener {
 		statMap.put("Best Fitness: ", Integer.toString(gen.getBestFitness()));
 		statMap.put("Worst Fitness: ", Integer.toString(gen.getWorstFitness()));
 		statMap.put("Total Fitness: ", Integer.toString(gen.getTotalFitness()));
-		statMap.put("Percent Completed: ", (Double.toString(numCompleted/((double)popSize))) + "%");
 
 		
 		repaint();

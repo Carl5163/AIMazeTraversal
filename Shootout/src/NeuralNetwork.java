@@ -8,7 +8,7 @@ public class NeuralNetwork {
 			
 	private ArrayList<Layer> layers;
 	
-	private int numInputs = 4;
+	private int numInputs = 8;
 	private int numOutputs = 4;
 	private double bias = -1;
 	private SimPrefs prefs;

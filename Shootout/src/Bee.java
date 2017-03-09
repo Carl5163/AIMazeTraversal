@@ -21,13 +21,11 @@ public class Bee {
 	private int direction;
 	private Pathfinder p;
 	private int[][] map;
-	int fitness;
+	private int fitness;
 	private NeuralNetwork brain;
 	int distanceToGoal;
 	int distanceOld;
 	int numberOfMovesPerIndividual = 100;
-	
-	boolean gotToGoal;
 	
 	
 	public Bee(SimPrefs prefs, int x, int y, int[][] map, int w, int h) throws IOException {
@@ -50,28 +48,30 @@ public class Bee {
 		distanceToGoal = findDistanceToGoal();
 		brain = new NeuralNetwork(prefs);
 		fitness = 100;
-		gotToGoal = false;
 		
 	}
 	
-	void update(ArrayList<Double> inputs, Genome mygenome) {
+	void update(ArrayList<Boolean> inputs, Genome mygenome) {
 		
-		if(!gotToGoal) {
-			ArrayList<Double> output = brain.update(inputs);
-			
-			double high = output.get(0);
-			
-			int highest = 0;
-			for(int i = 1; i < 4; i++) {
-				if(output.get(i) > high) {
-					high = output.get(i);
-					highest = i;
-				}
-			}
-			
-			move(map, highest);
-			mygenome.setFitness(findFitness());
+		ArrayList<Double> in = new ArrayList<Double>();
+		
+		for(int i = 0; i < inputs.size(); i++) {
+			in.add(inputs.get(i) ? 1.0 : -1.0);
 		}
+		ArrayList<Double> output = brain.update(in);
+		
+		double high = output.get(0);
+		
+		int highest = 0;
+		for(int i = 1; i < 4; i++) {
+			if(output.get(i) > high) {
+				high = output.get(i);
+				highest = i;
+			}
+		}
+		
+		move(map, highest);
+		mygenome.setFitness(findFitness());
 		
 	}
 
@@ -84,13 +84,10 @@ public class Bee {
 		} else if(distanceToGoal < distanceOld){
 			fitness += 10;
 		}
-		if(distanceToGoal == 0 && !gotToGoal) {
-			fitness+=500;
-			gotToGoal = true;
+		if(distanceToGoal == 0) {
+			fitness+=50;
 		}
-		if(!gotToGoal) {
-			fitness--;
-		}
+		fitness--;
 		return fitness;
 	}
 	

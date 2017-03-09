@@ -36,7 +36,7 @@ public class AIMT extends JFrame implements ActionListener {
 			e.printStackTrace();
 		}
 		setSize(1000, 1000);
-		setTitle("Shootout");
+		setTitle("AI Maze Traversal");
 		setResizable(false);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -129,13 +129,7 @@ public class AIMT extends JFrame implements ActionListener {
 				genNum++;
 				restart();				
 			}
-			int nc = 0;
-			for(Bee b : pop) {
-				if(b.gotToGoal) {
-					nc++;
-				}
-			}
-			drawPanel.updateStats(gen, nc, prefs.popSize, genNum, ticks, prefs.numTicks);
+			drawPanel.updateStats(gen, prefs.popSize, genNum, ticks, prefs.numTicks);
 			
 		} else if(e.getActionCommand().equals("PREFS")) {
 			PrefsDialog d = new PrefsDialog(prefs, this);
@@ -190,46 +184,14 @@ public class AIMT extends JFrame implements ActionListener {
 
 	private void updateBees() {
 		for(int bi = 0; bi < pop.size(); bi++) {
-			ArrayList<Double> inputs = new ArrayList<Double>();
-			double dist = 0;
-			for(int i = pop.get(bi).getX()-1; i >= 0; i--) {
-				if(drawPanel.getMap()[i][pop.get(bi).getY()] != DrawPanel.WALL) {
-					dist++;
-				} else {
-					break;
+			ArrayList<Boolean> inputs = new ArrayList<Boolean>();
+			for(int i = pop.get(bi).getX()-1; i <= pop.get(bi).getX()+1; i++) {
+				for(int j = pop.get(bi).getY()-1; j <= pop.get(bi).getY()+1; j++) {
+					if(!(i==pop.get(bi).getX() && j == pop.get(bi).getY())) {
+						inputs.add(drawPanel.getMap()[i][j] == DrawPanel.ENTRANCE);
+					}
 				}
 			}
-			inputs.add(dist);
-			dist = 0;
-			for(int i = pop.get(bi).getX()+1; i < 25; i++) {
-				if(drawPanel.getMap()[i][pop.get(bi).getY()] != DrawPanel.WALL) {
-					dist++;
-				} else {
-					break;
-				}
-			}
-			inputs.add(dist);
-			dist = 0;
-			for(int i = pop.get(bi).getY()-1; i >= 0; i--) {
-				if(drawPanel.getMap()[pop.get(bi).getX()][i] != DrawPanel.WALL) {
-					dist++;
-				} else {
-					break;
-				}
-			}
-			inputs.add(dist);
-			dist = 0;
-			for(int i = pop.get(bi).getY()+1; i < 25; i++) {
-				if(drawPanel.getMap()[pop.get(bi).getY()+1][i] != DrawPanel.WALL) {
-					dist++;
-				} else {
-					break;
-				}
-			}
-			inputs.add(dist);
-			dist = 0;
-			
-			
 			pop.get(bi).update(inputs, genomePop.get(bi));
 		}
 	}
@@ -237,8 +199,6 @@ public class AIMT extends JFrame implements ActionListener {
 		for(int i = 0; i < prefs.popSize; i++) {
 			pop.get(i).putWeights(genomePop.get(i).getWeights());
 			pop.get(i).setPosition(drawPanel.getSpawnX(), drawPanel.getSpawnY());
-			pop.get(i).gotToGoal = false;
-			pop.get(i).fitness = 0;
 		}
 		ticks = 0;
 		timer = new Timer(prefs.tickLength, this);
