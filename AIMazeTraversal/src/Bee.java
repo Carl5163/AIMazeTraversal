@@ -57,6 +57,7 @@ public class Bee {
 	void update(ArrayList<Double> inputs, Genome mygenome) {
 		
 		if(!gotToGoal) {
+			inputs.add((double) findDistanceToGoal());
 			ArrayList<Double> output = brain.update(inputs);
 			
 			double high = output.get(0);
@@ -79,17 +80,12 @@ public class Bee {
 	public int findFitness() {
 		distanceOld = distanceToGoal;		
 		distanceToGoal = findDistanceToGoal();
-		if(distanceToGoal > distanceOld) {
-			fitness -= 10;
-		} else if(distanceToGoal < distanceOld){
+		if(distanceToGoal < distanceOld){
 			fitness += 10;
 		}
 		if(distanceToGoal == 0 && !gotToGoal) {
 			fitness+=500;
 			gotToGoal = true;
-		}
-		if(!gotToGoal) {
-			fitness--;
 		}
 		return fitness;
 	}
